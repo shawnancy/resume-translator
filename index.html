@@ -150,22 +150,19 @@
 <div id="paywallModal" class="modal hidden">
   <div class="modal-box">
     <h3>免费次数已用完</h3>
-    <p class="modal-hint">扫码支付 <b>¥5</b>，获得 <b>2 次</b>用 AI 生成 / 修改简历的机会。</p>
-    <div class="qr-row">
-      <div class="qr-item">
-        <div class="qr-img" id="wechatQr">微信收款码<br><small>（待放入）</small></div>
-        <span>微信</span>
-      </div>
-      <div class="qr-item">
-        <div class="qr-img" id="alipayQr">支付宝收款码<br><small>（待放入）</small></div>
-        <span>支付宝</span>
-      </div>
+    <p class="modal-hint">支付 <b id="payPrice">¥5</b>，获得 <b id="payPack">2</b> 次生成 / 修改机会。选择支付方式：</p>
+    <div class="pay-methods">
+      <button class="pay-m" data-method="native">💚 微信支付</button>
+      <button class="pay-m" data-method="alipay">💙 支付宝</button>
+    </div>
+    <div id="payQrBox" class="pay-qr hidden">
+      <div id="payQr"></div>
+      <p id="payStatus" class="pay-status">正在发起支付…</p>
     </div>
     <div class="modal-actions">
-      <button id="paidBtn" class="primary-btn small">我已支付，解锁 2 次</button>
       <button id="closePaywallBtn" class="ghost-btn small">关闭</button>
     </div>
-    <p class="paywall-foot">支付后如未自动解锁，请联系作者。</p>
+    <p class="paywall-foot">扫码付款后自动到账、自动解锁。</p>
   </div>
 </div>
 
@@ -177,6 +174,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="app.js" type="module"></script>
 </body>
 </html>

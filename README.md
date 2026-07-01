@@ -41,6 +41,13 @@ DEEPSEEK_KEY=<你的key> ZHIPU_KEY=<你的key> node dev-server.mjs 8080
 ```
 部署到 CF/EdgeOne Pages 时，把 `DEEPSEEK_KEY` / `ZHIPU_KEY` 配到环境变量即可（`functions/api/llm.js` 会自动用）。
 
+### 付费模式（可选，XorPay 收款）
+配齐后自动开启"免费 N 次 → 扫码付费加次数"（用服务端 KV 记次，防绕过）：
+- 绑定 **KV** 命名空间为 `RT_KV`（Cloudflare KV / EdgeOne KV）
+- 环境变量：`XORPAY_AID`、`XORPAY_SECRET`（XorPay 后台）、`PRICE`(默认5.00)、`FREE_CREDITS`(默认2)、`PACK_CREDITS`(默认2)、`NOTIFY_URL`(默认自动=站点/api/pay/notify)
+- 端点：`/api/pay/create`(下单出码)、`/api/pay/notify`(XorPay回调)、`/api/pay/status`(轮询)
+- 未绑 KV = 不限次（开源默认）。本地测试：`GATING=1 FREE_CREDITS=0 node dev-server.mjs`（无 XorPay key 时走 mock，可 `POST /api/pay/_mockpay?order_id=X` 模拟付款）
+
 ## 文件
 - `index.html` / `style.css` / `app.js` — 前端全部
 - `functions/api/llm.js` — 边缘函数代理（CF/EdgeOne 通用，可选）

@@ -20,10 +20,20 @@ export async function onRequest(context) {
 
   let body;
   try { body = await request.json(); } catch { return cors(json({ error: "bad json" }, 400), env); }
-  const { system, userText, images } = body || {};
+  const { system, userText, images, token } = body || {};
   // ready = 服务端是否配了 key。前端探测用: 没配则自动切"用户自带 key"模式
   if (!system || typeof userText !== "string")
     return cors(json({ error: "missing fields", ready: !!(env.DEEPSEEK_KEY || env.ZHIPU_KEY) }, 400), env);
+
+  // 次数门禁: 仅当绑定了 KV(付费部署)才生效。开源/无KV部署不限次。
+  const gating = !!env.RT_KV;
+  const free = parseInt(env.FREE_CREDITS || "2", 10);
+  if (gating) {
+    if (!token) return cors(json({ error: "缺少 token" }, 400), env);
+    const v = await env.RT_KV.get("c:" + token);
+    const credits = v === null || v === undefined ? free : parseInt(v, 10);
+    if (credits <= 0) return cors(json({ error: "need_payment", credits: 0 }, 402), env);
+  }
 
   const hasImg = Array.isArray(images) && images.length > 0;
   const zhipuKey = env.ZHIPU_KEY;
@@ -40,6 +50,12 @@ export async function onRequest(context) {
     } else {
       if (!deepseekKey) throw new Error("server missing DEEPSEEK_KEY");
       text = await callDeepseek(deepseekKey, "deepseek-chat", system, userText);
+    }
+    // 生成成功才扣 1 次
+    if (gating) {
+      const v = await env.RT_KV.get("c:" + token);
+      const cur = v === null || v === undefined ? free : parseInt(v, 10);
+      await env.RT_KV.put("c:" + token, String(Math.max(0, cur - 1)));
     }
     return cors(json({ text }), env);
   } catch (e) {

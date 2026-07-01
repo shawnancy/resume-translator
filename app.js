@@ -389,6 +389,7 @@ async function runTranslate() {
     try {
       result = await generateBoth(input, currentOpts());
     } catch (e) {
+      if (e.needPayment) throw e; // 次数用完 → 直接弹付费, 不做OCR回退
       // 视觉模型失败(额度 429 等) → OCR 退回 DeepSeek 文字模式, 不让用户卡死
       if (willGemini) {
         console.warn("视觉模型失败，回退 DeepSeek 文字模式：", e.message);
@@ -404,6 +405,7 @@ async function runTranslate() {
     goStep(2);
   } catch (err) {
     console.error(err);
+    if (err.needPayment) { hideOverlay(); return showPaywall(); }
     alert("生成失败：" + err.message);
   } finally {
     hideOverlay();
@@ -501,10 +503,15 @@ async function callViaProxy({ system, userText, images }) {
   const resp = await fetch("/api/llm", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ system, userText, images: images || [] }),
+    body: JSON.stringify({ system, userText, images: images || [], token: getToken() }),
   });
   let data = {};
   try { data = await resp.json(); } catch {}
+  if (resp.status === 402) {
+    const e = new Error("need_payment");
+    e.needPayment = true;
+    throw e;
+  }
   if (!resp.ok) throw new Error(data.error || `代理错误 ${resp.status}`);
   if (!data.text) throw new Error("模型没有返回内容");
   return data.text;
@@ -617,6 +624,7 @@ $("retranslateBtn").addEventListener("click", async () => {
     consumeCredit();
   } catch (e) {
     console.error(e);
+    if (e.needPayment) { hideOverlay(); return showPaywall(); }
     alert("重新翻译失败：" + e.message);
   } finally {
     hideOverlay();
@@ -856,43 +864,89 @@ document.querySelectorAll(".step-pill").forEach((p) =>
 );
 $("backTo2Btn").addEventListener("click", () => goStep(1)); // 返回上传·设置
 
-// ================= 付费门禁（静态 MVP：localStorage 记次，真验证需后端） =================
-const LS_FREE = "rt_free_used";
-const LS_PAID = "rt_paid_credits";
-function paidCredits() {
-  return parseInt(localStorage.getItem(LS_PAID) || "0", 10) || 0;
+// ================= 付费门禁（后端模式: 服务端 KV 记次 + XorPay 收款；BYO 模式: 不限次） =================
+// 设备令牌: 次数按此绑定(服务端), 持久在本地
+function getToken() {
+  let t = localStorage.getItem("rt_token");
+  if (!t) {
+    t = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+    localStorage.setItem("rt_token", t);
+  }
+  return t;
 }
-function freeUsed() {
-  return localStorage.getItem(LS_FREE) === "1";
-}
-function availableCredits() {
-  return (freeUsed() ? 0 : 1) + paidCredits();
-}
+// 次数改由服务端权威判定(402), 前端不预扣; BYO 模式不限次
 function hasCredit() {
-  return !backendMode || availableCredits() > 0; // 自带key模式不限次
+  return true;
 }
 function consumeCredit() {
-  if (!backendMode) return; // 自带key模式不扣次
-  if (!freeUsed()) localStorage.setItem(LS_FREE, "1");
-  else localStorage.setItem(LS_PAID, String(Math.max(0, paidCredits() - 1)));
-  updateCredit();
+  refreshCredit(); // 服务端已扣, 这里只刷新徽章
 }
-function updateCredit() {
+async function refreshCredit() {
   const b = $("creditBadge");
   if (!b) return;
-  const n = availableCredits();
-  b.textContent = n > 0 ? `剩余 ${n} 次` : "次数用完";
-  b.style.color = n > 0 ? "" : "var(--warn)";
+  if (!backendMode) {
+    b.classList.add("hidden");
+    return;
+  }
+  try {
+    const r = await fetch(`/api/pay/status?token=${encodeURIComponent(getToken())}`);
+    const d = await r.json();
+    b.classList.remove("hidden");
+    b.textContent = d.credits > 0 ? `剩余 ${d.credits} 次` : "次数用完";
+    b.style.color = d.credits > 0 ? "" : "var(--warn)";
+  } catch {}
 }
+function updateCredit() {
+  refreshCredit();
+}
+
+// ---- XorPay 收款流程 ----
+let payTimer = null;
 function showPaywall() {
+  $("payQrBox").classList.add("hidden");
+  $("payQr").innerHTML = "";
   $("paywallModal").classList.remove("hidden");
 }
-$("closePaywallBtn").addEventListener("click", () => $("paywallModal").classList.add("hidden"));
-$("paidBtn").addEventListener("click", () => {
-  localStorage.setItem(LS_PAID, String(paidCredits() + 2));
+async function startPay(method) {
+  $("payQrBox").classList.remove("hidden");
+  $("payQr").innerHTML = "";
+  $("payStatus").textContent = "正在发起支付…";
+  try {
+    const r = await fetch("/api/pay/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: getToken(), method }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "下单失败 " + r.status);
+    new window.QRCode($("payQr"), { text: d.qr, width: 180, height: 180 });
+    $("payStatus").textContent = d.mock
+      ? "本地模拟：POST /api/pay/_mockpay?order_id=" + d.order_id + " 完成付款"
+      : "请用" + (method === "alipay" ? "支付宝" : "微信") + "扫码支付 " + d.price + " 元";
+    pollPay(d.order_id);
+  } catch (e) {
+    $("payStatus").textContent = "发起支付失败：" + e.message;
+  }
+}
+function pollPay(order_id) {
+  clearInterval(payTimer);
+  payTimer = setInterval(async () => {
+    try {
+      const r = await fetch(`/api/pay/status?order_id=${order_id}&token=${encodeURIComponent(getToken())}`);
+      const d = await r.json();
+      if (d.paid) {
+        clearInterval(payTimer);
+        $("payStatus").textContent = "✓ 支付成功，已到账！";
+        refreshCredit();
+        setTimeout(() => $("paywallModal").classList.add("hidden"), 1400);
+      }
+    } catch {}
+  }, 2500);
+}
+document.querySelectorAll(".pay-m").forEach((b) => b.addEventListener("click", () => startPay(b.dataset.method)));
+$("closePaywallBtn").addEventListener("click", () => {
+  clearInterval(payTimer);
   $("paywallModal").classList.add("hidden");
-  updateCredit();
-  flash($("paidBtn"), "✓ 已解锁 +2 次");
 });
 
 // ================= overlay =================

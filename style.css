@@ -198,6 +198,13 @@ body.step3 main{max-width:1240px}
 .qr-item{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-soft)}
 .qr-img{width:150px;height:150px;border:1px dashed #c8d2e2;border-radius:12px;display:grid;place-items:center;text-align:center;color:var(--ink-faint);font-size:13px;background:#fafbfd}
 .qr-img img{width:100%;height:100%;object-fit:contain;border-radius:12px}
+.pay-methods{display:flex;gap:12px;margin:4px 0 14px}
+.pay-m{flex:1;padding:13px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;transition:.15s}
+.pay-m:hover{border-color:var(--accent);background:var(--accent-soft)}
+.pay-qr{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 14px}
+.pay-qr #payQr{width:180px;height:180px;display:grid;place-items:center}
+.pay-qr #payQr img,.pay-qr #payQr canvas{width:180px!important;height:180px!important}
+.pay-status{font-size:13px;color:var(--ink-soft);text-align:center;margin:0}
 .paywall-foot{font-size:11.5px;color:var(--ink-faint);text-align:center;margin:10px 0 0}
 
 .footer{text-align:center;color:var(--ink-soft);font-size:12px;padding:22px;border-top:1px solid var(--line)}
