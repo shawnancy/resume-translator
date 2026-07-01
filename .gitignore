@@ -1,0 +1,6 @@
+.DS_Store
+_shawtest.pdf
+_*.pdf
+node_modules/
+*.log
+.dev-keys*

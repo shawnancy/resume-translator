@@ -1,0 +1,2 @@
+EO_NAME=resume-translator
+EO_SRC="index.html app.js style.css functions"
