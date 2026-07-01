@@ -128,18 +128,16 @@
 <!-- 设置弹窗（自带 Key） -->
 <div id="settingsModal" class="modal hidden">
   <div class="modal-box">
-    <h3>填入你自己的 API Key</h3>
-    <p class="modal-hint">本工具开源免费，用你自己的 Key。只存在你浏览器本地（localStorage），不上传任何服务器。</p>
+    <h3>填入你的 API Key</h3>
+    <p class="modal-hint">Key 只存在你浏览器本地，不上传服务器。</p>
 
-    <label class="model-row">DeepSeek Key <span class="key-tag">文本 / PDF 简历</span>
+    <label class="model-row">DeepSeek Key <span class="key-tag">文本 / PDF</span>
       <input type="password" id="deepseekKeyInput" placeholder="sk-...">
     </label>
-    <ol class="key-steps"><li>去 <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener">DeepSeek 开放平台</a> 创建，充几块钱即可用很久</li></ol>
 
-    <label class="model-row">智谱 GLM Key <span class="key-tag">图片简历 · 看图复刻版式（可选）</span>
+    <label class="model-row">智谱 GLM Key <span class="key-tag">图片简历（可选）</span>
       <input type="password" id="zhipuKeyInput" placeholder="xxxxxxxx.xxxxxxxx">
     </label>
-    <ol class="key-steps"><li>去 <a href="https://bigmodel.cn" target="_blank" rel="noopener">智谱 BigModel</a> 创建，新用户送 2000 万免费 tokens</li></ol>
 
     <div class="modal-actions">
       <button id="saveKeyBtn" class="primary-btn small">保存</button>
