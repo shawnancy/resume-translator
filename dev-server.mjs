@@ -1,5 +1,5 @@
 // 本地开发服务器：同时服务静态文件 + /api/llm 代理（模拟边缘函数）
-// 用法：DEEPSEEK_KEY=sk-xxx GEMINI_KEY=AIza-xxx node dev-server.mjs [port]
+// 用法：DEEPSEEK_KEY=<你的key> ZHIPU_KEY=<你的key> node dev-server.mjs [port]
 // 仅本地测试用，keys 从环境变量读，不写盘、不进 git。
 import http from "node:http";
 import { readFile } from "node:fs/promises";

@@ -37,7 +37,7 @@
 python3 -m http.server 8080
 
 # 带后端代理（隐藏 Key，模拟部署版）
-DEEPSEEK_KEY=sk-xxx ZHIPU_KEY=xxx.xxx node dev-server.mjs 8080
+DEEPSEEK_KEY=<你的key> ZHIPU_KEY=<你的key> node dev-server.mjs 8080
 ```
 部署到 CF/EdgeOne Pages 时，把 `DEEPSEEK_KEY` / `ZHIPU_KEY` 配到环境变量即可（`functions/api/llm.js` 会自动用）。
 
