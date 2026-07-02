@@ -384,7 +384,7 @@ async function runTranslate() {
       if (!ocrText) throw new Error("OCR 没识别出文字，请换更清晰的图");
       input = { ...input, text: ocrText };
     }
-    showOverlay(`正在生成中英双语简历（约 15–50 秒）…`);
+    showOverlay(`正在生成中英双语简历（约 1–2 分钟，长简历更久，请勿关闭页面）…`);
     let result;
     try {
       result = await generateBoth(input, currentOpts());
@@ -492,11 +492,31 @@ async function generateEnOnly(zhText, opts) {
 }
 
 // ---- 统一 LLM 调用（双模式）----
-// 后端模式(部署带代理): 走 /api/llm, key 藏服务端。
+// 后端模式: 先向 /api/zhipu-token 要短时JWT, 浏览器直连智谱(生成要1-2分钟, 走服务器代理会被~25s硬超时掐死→504)。
+//          JWT拿不到时才回退老代理路(/api/llm, 只适合短输出)。
 // 自带 key 模式(开源静态站): 用用户在设置里填的 key 直连。
-// 均: 有图→智谱GLM-4.5V视觉; 纯文本→DeepSeek。失败抛错由 runTranslate 回退处理。
+let _srvJwt = null; // { token, exp }
+async function getServerJwt() {
+  if (_srvJwt && Date.now() < _srvJwt.exp - 60000) return _srvJwt.token;
+  const r = await fetch("/api/zhipu-token", { method: "POST" });
+  if (!r.ok) throw new Error("token endpoint " + r.status);
+  const d = await r.json();
+  if (!d.token) throw new Error("no token");
+  _srvJwt = d;
+  return d.token;
+}
 async function callLLM(args) {
-  return backendMode ? callViaProxy(args) : callDirect(args);
+  if (backendMode) {
+    try {
+      const jwt = await getServerJwt();
+      return await zhipuDirect(jwt, args.system, args.userText, args.images || []);
+    } catch (e) {
+      if (e.needPayment) throw e;
+      console.warn("JWT直连失败, 回退代理:", e.message);
+      return callViaProxy(args);
+    }
+  }
+  return callDirect(args);
 }
 
 async function callViaProxy({ system, userText, images }) {
@@ -523,10 +543,9 @@ async function callDirect({ system, userText, images }) {
   const zhipu = getUserKey("zhipu");
   const deepseek = getUserKey("deepseek");
   if (hasImg && zhipu) return zhipuDirect(zhipu, system, userText, images);
-  if (!deepseek) {
-    throw new Error(hasImg && !zhipu ? "图片简历需要智谱 Key，请点右上角 ⚙️ 填入" : "请点右上角 ⚙️ 填入 DeepSeek Key");
-  }
-  return deepseekDirect(deepseek, system, userText);
+  if (!hasImg && deepseek) return deepseekDirect(deepseek, system, userText);
+  if (!hasImg && zhipu) return zhipuDirect(zhipu, system, userText, []); // 只填了智谱key → 文本也走智谱
+  throw new Error(hasImg ? "图片简历需要智谱 Key，请点右上角 ⚙️ 填入" : "请点右上角 ⚙️ 填入 DeepSeek 或智谱 Key");
 }
 
 async function deepseekDirect(key, system, userText) {
