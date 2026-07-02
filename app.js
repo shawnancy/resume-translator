@@ -891,6 +891,7 @@ async function refreshCredit() {
   try {
     const r = await fetch(`/api/pay/status?token=${encodeURIComponent(getToken())}`);
     const d = await r.json();
+    if (!d.gating) { b.classList.add("hidden"); return; } // 没开门禁=不限次, 不显示次数
     b.classList.remove("hidden");
     b.textContent = d.credits > 0 ? `剩余 ${d.credits} 次` : "次数用完";
     b.style.color = d.credits > 0 ? "" : "var(--warn)";

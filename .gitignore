@@ -4,3 +4,5 @@ _*.pdf
 node_modules/
 *.log
 .dev-keys*
+functions/_keys.js
+.env

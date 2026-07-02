@@ -16,7 +16,8 @@ export async function onRequestGet(ctx) {
     const v = await env.RT_KV.get("c:" + token);
     credits = v === null || v === undefined ? free : parseInt(v, 10);
   }
-  return new Response(JSON.stringify({ paid, credits }), {
+  // gating=false(没绑KV) → 不限次, 前端应隐藏次数徽章
+  return new Response(JSON.stringify({ paid, credits, gating: !!env.RT_KV }), {
     status: 200, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
   });
 }
