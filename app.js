@@ -455,6 +455,7 @@ ${sharedRules(hasPhoto)}`;
 function enOnlySystem({ lang, tone, template, hasPhoto }) {
   return `You are an expert bilingual resume specialist and front-end designer. Translate the given Chinese resume into ${lang} and produce ONE clean HTML resume. ${toneLineOf(tone)}
 ${EN_EXTRA}
+- TRANSLATE EVERY VISIBLE STRING into ${lang}: all section headings (求职意向→Career Objective, 教育背景→Education, 工作经历→Work Experience, 项目经历→Projects, 技能→Skills), all labels (熟练→Proficient, 了解→Familiar with, 至今→Present), and EVERY bullet/sentence. The final HTML must contain ZERO Chinese characters — leaving any Chinese untranslated is a hard failure.
 Output ONLY the HTML document (start with <!DOCTYPE html>), no fences, no commentary.
 
 ${styleBlock(template)}
@@ -476,19 +477,56 @@ async function generateBoth(input, opts) {
     : "The resume is in the attached image(s). Transcribe and use it.";
   const sys = bothSystem({ ...opts, hasPhoto: !!input.photo });
   const raw = await callLLM({ system: sys, userText, images: input.images });
-  const i = raw.indexOf(SPLIT);
-  let en, zh;
-  if (i === -1) { en = cleanHtml(raw); zh = ""; } // 模型没给分隔符/被截断 → 至少保英文
-  else { en = cleanHtml(raw.slice(0, i)); zh = cleanHtml(raw.slice(i + SPLIT.length)); }
+  // 健壮解析: 模型输出会漂(分隔符放开头/出现两次/文档顺序颠倒/DOCTYPE后插```围栏),
+  // 天真的"按第一个SPLIT切一刀"会切出空英文=白屏。改为: 按<!DOCTYPE切出所有文档, 按中文占比认领中/英。
+  const docs = extractDocs(raw);
+  let en = "", zh = "";
+  if (docs.length >= 2) {
+    const sorted = docs.map((d) => ({ d, r: cjkRatio(d) })).sort((a, b) => a.r - b.r);
+    en = sorted[0].d;                  // 中文占比最低的 = 英文版
+    zh = sorted[sorted.length - 1].d;  // 最高的 = 中文版
+  } else if (docs.length === 1) {
+    if (cjkRatio(docs[0]) > 0.05) zh = docs[0];
+    else en = docs[0];
+  }
+  if (!en) throw new Error("模型这次没有输出英文版（偶发），请再点一次生成");
   return { enHtml: injectPhoto(en, input.photo), zhHtml: injectPhoto(zh, input.photo) };
 }
+// 从模型原始输出里切出所有完整 HTML 文档(容忍围栏/分隔符残留/顺序漂移)
+function extractDocs(raw) {
+  let s = String(raw || "")
+    .replace(/```html/gi, "").replace(/```/g, "")
+    .replace(/<\|begin_of_box\|>|<\|end_of_box\|>/g, ""); // glm 偶发盒子标记
+  const idx = [];
+  const re = /<!DOCTYPE\s+html/gi;
+  let m;
+  while ((m = re.exec(s))) idx.push(m.index);
+  if (!idx.length) { const i = s.search(/<html[\s>]/i); if (i >= 0) idx.push(i); }
+  const docs = [];
+  for (let k = 0; k < idx.length; k++) {
+    let seg = s.slice(idx[k], k + 1 < idx.length ? idx[k + 1] : undefined);
+    seg = seg.split(SPLIT).join("").trim(); // 去掉粘在文档尾部的分隔符
+    if (seg.length > 100) docs.push(seg);
+  }
+  return docs;
+}
+// 去标签后中文字符占比(用于判断哪份是中文版)
+function cjkRatio(html) {
+  const t = String(html || "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, "");
+  const c = (t.match(/[一-鿿]/g) || []).length;
+  return c / Math.max(t.length, 1);
+}
 async function generateEnOnly(zhText, opts) {
-  const raw = await callLLM({
-    system: enOnlySystem({ ...opts, hasPhoto: !!opts.photo }),
-    userText: "Resume content (Chinese):\n\n" + zhText.slice(0, 16000),
-    images: [],
-  });
-  return injectPhoto(cleanHtml(raw), opts.photo);
+  // glm-4.5v 对"仅英文"任务会偷懒只翻专有名词(实测必现) → 输出验中文占比, 超标重试一次
+  const sys = enOnlySystem({ ...opts, hasPhoto: !!opts.photo });
+  const userText = "Resume content (Chinese):\n\n" + zhText.slice(0, 16000);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const raw = await callLLM({ system: sys, userText, images: [] });
+    const html = cleanHtml(raw);
+    if (cjkRatio(html) < 0.02) return injectPhoto(html, opts.photo);
+    console.warn(`重新翻译第 ${attempt + 1} 次输出仍含中文(占比 ${cjkRatio(html).toFixed(3)}), ${attempt === 0 ? "重试" : "放弃"}`);
+  }
+  throw new Error("模型没把内容翻全（输出仍含中文），请再点一次重新翻译");
 }
 
 // ---- 统一 LLM 调用（双模式）----
