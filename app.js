@@ -586,6 +586,42 @@ async function callDirect({ system, userText, images }) {
   throw new Error(hasImg ? "图片简历需要智谱 Key，请点右上角 ⚙️ 填入" : "请点右上角 ⚙️ 填入 DeepSeek 或智谱 Key");
 }
 
+// SSE 流式读取(OpenAI 兼容 delta 格式)。
+// 为什么必须流式: 手机 webview(微信/iOS Safari) fetch 空闲超时~60s, 完整生成要 40-90s,
+// 非流式一次性等结果在手机上必被掐死→回退代理又撞 EdgeOne 25s 硬超时→空内容/白屏。
+// SSE 持续有数据到达不算空闲, 手机也能等完整个生成。
+async function readSSEText(r) {
+  let out = "";
+  const feed = (line) => {
+    const s = line.trim();
+    if (!s.startsWith("data:")) return;
+    const payload = s.slice(5).trim();
+    if (!payload || payload === "[DONE]") return;
+    try {
+      const j = JSON.parse(payload);
+      out += j?.choices?.[0]?.delta?.content ?? j?.choices?.[0]?.message?.content ?? "";
+      updateOverlayProgress(out.length);
+    } catch {}
+  };
+  if (r.body && r.body.getReader) {
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop();
+      lines.forEach(feed);
+    }
+    feed(buf);
+  } else {
+    (await r.text()).split("\n").forEach(feed); // 老内核无流读兜底: 整包解析(不防超时但不坏功能)
+  }
+  return out;
+}
+
 async function deepseekDirect(key, system, userText) {
   const r = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
@@ -593,7 +629,7 @@ async function deepseekDirect(key, system, userText) {
     body: JSON.stringify({
       model: "deepseek-chat",
       messages: [{ role: "system", content: system }, { role: "user", content: userText }],
-      temperature: 0.3, max_tokens: 8192, stream: false,
+      temperature: 0.3, max_tokens: 8192, stream: true,
     }),
   });
   if (!r.ok) {
@@ -601,8 +637,7 @@ async function deepseekDirect(key, system, userText) {
     if (r.status === 402) throw new Error("DeepSeek 余额不足（402）");
     throw new Error(`DeepSeek ${r.status}: ${(await r.text()).slice(0, 160)}`);
   }
-  const d = await r.json();
-  const out = d?.choices?.[0]?.message?.content || "";
+  const out = await readSSEText(r);
   if (!out) throw new Error("模型没有返回内容");
   return out;
 }
@@ -613,14 +648,13 @@ async function zhipuDirect(key, system, userText, images) {
   const r = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + key },
-    body: JSON.stringify({ model: "glm-4.5v", messages: [{ role: "user", content }], temperature: 0.3, max_tokens: 16384, thinking: { type: "disabled" } }),
+    body: JSON.stringify({ model: "glm-4.5v", messages: [{ role: "user", content }], temperature: 0.3, max_tokens: 16384, thinking: { type: "disabled" }, stream: true }),
   });
   if (!r.ok) {
     if (r.status === 401) throw new Error("智谱 Key 无效（401）");
     throw new Error(`智谱 ${r.status}: ${(await r.text()).slice(0, 160)}`);
   }
-  const d = await r.json();
-  const out = d?.choices?.[0]?.message?.content || "";
+  const out = await readSSEText(r);
   if (!out) throw new Error("智谱没有返回内容");
   return out;
 }
@@ -1010,7 +1044,13 @@ $("closePaywallBtn").addEventListener("click", () => {
 // ================= overlay =================
 function showOverlay(t) {
   overlayText.textContent = t || "处理中…";
+  overlayText.dataset.base = t || "处理中…";
   overlay.classList.remove("hidden");
+}
+// 流式生成时把已收到的字符数刷到遮罩上, 让手机用户知道没卡死
+function updateOverlayProgress(n) {
+  if (overlay.classList.contains("hidden") || !n) return;
+  overlayText.textContent = (overlayText.dataset.base || "生成中") + `（已生成 ${n} 字…）`;
 }
 function hideOverlay() {
   overlay.classList.add("hidden");
