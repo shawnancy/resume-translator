@@ -415,7 +415,7 @@ async function runTranslate() {
 // ---- Prompt 组装 ----
 function sharedRules(hasPhoto) {
   const imgRule = hasPhoto
-    ? 'The candidate has a photo. Put the literal placeholder token __PHOTO_0__ (as plain text, NOT an <img> tag, exactly once) at the position where the photo appears in the original (e.g. top-right of the header). Do NOT wrap it in any rounded/circular/oval container and do NOT add border-radius or a mask around it — it will be replaced with a plain rectangular photo. Do not add any other <img>.'
+    ? 'The candidate has a photo. Put the literal placeholder token __PHOTO_0__ (as plain text, NOT an <img> tag, exactly once) at EXACTLY the same position as the photo in the ORIGINAL resume — same corner, same side, same section (look at the original layout; if you cannot tell, use the top-right of the header). Reproducing the original photo position is a hard requirement, do not move it to a different corner. Do NOT wrap it in any rounded/circular/oval container and do NOT add border-radius or a mask around it — it will be replaced with a plain rectangular photo. Do not add any other <img>.'
     : "No <img> tags.";
   return `HARD RULES (apply to EACH resume):
 - A complete self-contained HTML document starting with <!DOCTYPE html>. All CSS inline in one <style> tag. No external resources, no JavaScript. ${imgRule}
@@ -678,6 +678,26 @@ function fallbackZh(text) {
 }
 
 // ================= 双栏渲染 / 编辑 / 导出 =================
+// 简历页固定 A4 宽 794px, 手机/对照双栏塞不下 → 把 iframe 整体缩放到容器宽, 横向一次看全
+const PAGE_W = 794;
+function fitFrame(frame) {
+  const clip = frame.parentElement;
+  if (!clip || !clip.classList.contains("frame-clip") || clip.offsetParent === null) return;
+  const w = clip.clientWidth;
+  const h = clip.clientHeight;
+  if (!w || !h) return;
+  const scale = Math.min(1, w / PAGE_W);
+  if (scale >= 0.999) {
+    frame.style.width = "100%"; frame.style.height = "100%"; frame.style.transform = "";
+  } else {
+    frame.style.width = PAGE_W + "px";
+    frame.style.height = Math.round(h / scale) + "px";
+    frame.style.transform = `scale(${scale})`;
+  }
+}
+function fitAllFrames() { document.querySelectorAll(".pane iframe").forEach(fitFrame); }
+window.addEventListener("resize", fitAllFrames);
+
 function mountEditable(frame, html) {
   frame.srcdoc = html;
   frame.addEventListener(
@@ -688,6 +708,7 @@ function mountEditable(frame, html) {
       } catch (e) {
         console.warn("designMode 开启失败", e);
       }
+      fitFrame(frame);
     },
     { once: true }
   );
@@ -741,6 +762,7 @@ document.querySelectorAll(".vt").forEach((b) =>
   b.addEventListener("click", () => {
     $("bilingual").className = "bilingual view-" + b.dataset.view;
     document.querySelectorAll(".vt").forEach((x) => x.classList.toggle("active", x === b));
+    fitAllFrames(); // 切视图后栏宽变了, 重算缩放
   })
 );
 
@@ -944,6 +966,7 @@ function goStep(n) {
     p.classList.toggle("done", k < n);
   });
   document.body.classList.toggle("wide-step", n === 2); // 步骤2=对照编辑，宽布局
+  if (n === 2) requestAnimationFrame(fitAllFrames); // 面板刚显示出来才有真实宽度, 下一帧再算缩放
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 document.querySelectorAll(".step-pill").forEach((p) =>
