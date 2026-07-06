@@ -404,6 +404,8 @@ async function runTranslate() {
     renderBilingual(result.zhHtml || fallbackZh(input.text), result.enHtml);
     consumeCredit();
     goStep(2);
+    // 生成完成后询问要不要做 3D 简历网页(用户自主选, 大王 07-07 定)
+    setTimeout(() => $("ask3d").classList.remove("hidden"), 450);
   } catch (err) {
     console.error(err);
     if (err.needPayment) { hideOverlay(); return showPaywall(); }
@@ -584,7 +586,7 @@ async function callDirect({ system, userText, images }) {
   if (hasImg && zhipu) return zhipuDirect(zhipu, system, userText, images);
   if (!hasImg && deepseek) return deepseekDirect(deepseek, system, userText);
   if (!hasImg && zhipu) return zhipuDirect(zhipu, system, userText, []); // 只填了智谱key → 文本也走智谱
-  throw new Error(hasImg ? "图片简历需要智谱 Key，请点右上角 ⚙️ 填入" : "请点右上角 ⚙️ 填入 DeepSeek 或智谱 Key");
+  throw new Error(hasImg ? "图片简历需要智谱 Key，请点右上角「Key」按钮填入" : "请点右上角「Key」按钮填入 DeepSeek 或智谱 Key");
 }
 
 // SSE 流式读取(OpenAI 兼容 delta 格式)。
@@ -955,10 +957,16 @@ document.querySelectorAll("#langPills .lp").forEach((b) =>
     document.querySelectorAll("#langPills .lp").forEach((x) => x.classList.toggle("selected", x === b));
   })
 );
-$("open3dBtn").addEventListener("click", () => {
+function open3dWizard() {
   render3dGrid();
   $("pubResult").classList.add("hidden");
   $("modal3d").classList.remove("hidden");
+}
+$("open3dBtn").addEventListener("click", open3dWizard);
+$("ask3dNo").addEventListener("click", () => $("ask3d").classList.add("hidden"));
+$("ask3dGo").addEventListener("click", () => {
+  $("ask3d").classList.add("hidden");
+  open3dWizard();
 });
 $("close3dBtn").addEventListener("click", () => $("modal3d").classList.add("hidden"));
 $("prev3dBtn").addEventListener("click", () => {
@@ -1015,7 +1023,7 @@ $("pub3dBtn").addEventListener("click", async () => {
     alert("生成链接失败：" + e.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = "🚀 一键生成网页链接";
+    btn.textContent = "一键生成网页链接";
   }
 });
 $("copyLinkBtn").addEventListener("click", async () => {
