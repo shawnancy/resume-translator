@@ -2,6 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+import { TEMPLATES_3D, buildResumeData, build3DHtml } from "./templates3d.js?v=20260706a";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -951,9 +952,87 @@ function renderTemplates() {
     c.addEventListener("click", () => {
       localStorage.setItem(LS_TPL, c.dataset.tpl);
       grid.querySelectorAll(".tpl-card").forEach((x) => x.classList.toggle("selected", x === c));
+      updateTplLabel();
+    })
+  );
+  updateTplLabel();
+}
+// 折叠态 summary 上显示当前选中的模板名
+function updateTplLabel() {
+  const el = $("tplCur");
+  if (!el) return;
+  const t = TEMPLATES.find((x) => x.id === getTemplate());
+  el.textContent = t ? t.name : "自动（推荐）";
+}
+
+// ================= 3D 简历 =================
+// 灵感取自日常收集「AI简历模板39资源」: 玻璃拟态 / 赛博霓虹 / 复古终端。
+// 产物 = 零依赖单文件 HTML, 内嵌中英双份数据, 打开按浏览器语言自动切换, 可下载分享/当个人主页。
+const LS_3D = "rt_3dtpl";
+function get3dTpl() {
+  const id = localStorage.getItem(LS_3D);
+  return TEMPLATES_3D.some((t) => t.id === id) ? id : TEMPLATES_3D[0].id;
+}
+function render3dGrid() {
+  const grid = $("grid3d");
+  const sel = get3dTpl();
+  grid.innerHTML = TEMPLATES_3D.map(
+    (t) => `<div class="tpl3d ${t.id === sel ? "selected" : ""}" data-t3d="${t.id}">
+      <div class="t3d-thumb t3d-${t.id}">${thumb3d(t.id)}</div>
+      <div class="t3d-meta"><div class="tpl-name">${t.name}</div><div class="tpl-desc">${t.desc}</div></div>
+      <div class="tpl-check">✓</div>
+    </div>`
+  ).join("");
+  grid.querySelectorAll("[data-t3d]").forEach((c) =>
+    c.addEventListener("click", () => {
+      localStorage.setItem(LS_3D, c.dataset.t3d);
+      grid.querySelectorAll(".tpl3d").forEach((x) => x.classList.toggle("selected", x === c));
     })
   );
 }
+function thumb3d(id) {
+  if (id === "glass")
+    return `<div class="g-star s1"></div><div class="g-star s2"></div><div class="g-star s3"></div>
+      <div class="g-card"><i></i><i class="w60"></i><i class="w80"></i></div>`;
+  if (id === "neon")
+    return `<div class="n-sun"></div><div class="n-grid"></div>
+      <div class="n-card"><i></i><i class="w60"></i><i class="w80"></i></div>`;
+  return `<div class="t-lines"><span>$ whoami</span><span class="t-g">&gt; resume --lang auto</span><span class="t-g">&gt; loading ▍</span></div>`;
+}
+function build3dData() {
+  const zhDoc = $("zhFrame").contentDocument;
+  const enDoc = $("enFrame").contentDocument;
+  const zhOk = zhDoc?.body && zhDoc.body.textContent.trim().length > 20;
+  const enOk = enDoc?.body && enDoc.body.textContent.trim().length > 20;
+  if (!zhOk && !enOk) throw new Error("请先生成简历，再制作 3D 版");
+  return buildResumeData(zhOk ? zhDoc : null, enOk ? enDoc : null, current?.photo || null);
+}
+$("open3dBtn").addEventListener("click", () => {
+  render3dGrid();
+  $("modal3d").classList.remove("hidden");
+});
+$("close3dBtn").addEventListener("click", () => $("modal3d").classList.add("hidden"));
+$("prev3dBtn").addEventListener("click", () => {
+  try {
+    const html = build3DHtml(get3dTpl(), build3dData());
+    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    alert(e.message);
+  }
+});
+$("dl3dBtn").addEventListener("click", () => {
+  try {
+    const data = build3dData();
+    const html = build3DHtml(get3dTpl(), data);
+    const name = (data.zh?.name || data.en?.name || "Resume").replace(/[\\/:*?"<>|\s]+/g, "_");
+    downloadBlob(new Blob([html], { type: "text/html" }), `3D简历_${name}.html`);
+    flash($("dl3dBtn"), "✓ 已下载");
+  } catch (e) {
+    alert(e.message);
+  }
+});
 
 // ================= 步骤导航 =================
 let maxStep = 1;
