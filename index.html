@@ -6,7 +6,7 @@
 <title>简历翻译 · 中文简历一键变专业英文简历</title>
 <meta name="description" content="把任意格式的中文简历（PDF / Word / 图片 / 文本）翻译成英文，多套专业模板，中英对照可编辑，导出 PDF / Word。免费、零安装。">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-<link rel="stylesheet" href="style.css?v=20260706a">
+<link rel="stylesheet" href="style.css?v=20260707a">
 </head>
 <body>
 <header class="topbar">
@@ -40,7 +40,7 @@
         <span class="perk">🔒 不存服务器</span>
         <span class="perk">⇄ 中英对照可编辑</span>
         <span class="perk">📄 导出 PDF / Word</span>
-        <span class="perk hot">🧊 可生成 3D 简历</span>
+        <span class="perk hot">🧊 3D简历 · 一键发布成网页</span>
       </div>
 
       <div id="dropzone" class="dropzone">
@@ -59,11 +59,6 @@
       </details>
 
       <div id="filePreview" class="file-preview hidden"></div>
-
-      <details class="tpl-wrap">
-        <summary>🎨 选择简历模板风格 <span class="tpl-cur" id="tplCur">自动（推荐）</span></summary>
-        <div id="templateGrid" class="template-grid"></div>
-      </details>
 
       <div class="settings-row">
         <label class="opt">
@@ -158,18 +153,40 @@
   </div>
 </div>
 
-<!-- 3D 简历弹窗 -->
+<!-- 3D 简历弹窗（三步引导） -->
 <div id="modal3d" class="modal hidden">
   <div class="modal-box box3d">
-    <h3>🧊 生成 3D 简历</h3>
-    <p class="modal-hint">把简历变成一个<b>可分享的 3D 动效网页</b>（单文件 HTML）。访客打开时按浏览器语言<b>自动显示中文或英文</b>，右上角还能手动切换。</p>
+    <h3>🧊 把简历做成你的网页</h3>
+    <p class="modal-hint">三步生成一个 <b>3D 动效简历网页</b>，一键拿到链接，<b>发给 HR 直接打开</b>。</p>
+
+    <div class="wiz-step"><span class="wiz-num">1</span> 选一个风格</div>
     <div class="grid3d" id="grid3d"></div>
+
+    <div class="wiz-step"><span class="wiz-num">2</span> 选语言</div>
+    <div class="lang-pills" id="langPills">
+      <button class="lp selected" data-lm="auto">🌐 双语<span class="lp-sub">按访客浏览器自动切</span></button>
+      <button class="lp" data-lm="zh">🇨🇳 仅中文</button>
+      <button class="lp" data-lm="en">🇬🇧 仅英文</button>
+    </div>
+
+    <div class="wiz-step"><span class="wiz-num">3</span> 完成</div>
+    <div class="pub-row">
+      <button id="pub3dBtn" class="primary-btn">🚀 一键生成网页链接</button>
+      <button id="prev3dBtn" class="ghost-btn small">👁 先看效果</button>
+      <button id="dl3dBtn" class="ghost-btn small">⬇️ 下载网页文件</button>
+    </div>
+    <div id="pubResult" class="pub-result hidden">
+      <p class="pub-ok">✅ 你的简历网页已生成，复制链接发给 HR 就能打开：</p>
+      <div class="pub-link-row">
+        <input id="pubLink" readonly>
+        <button id="copyLinkBtn" class="primary-btn small">复制链接</button>
+        <button id="openLinkBtn" class="ghost-btn small">打开看看</button>
+      </div>
+      <p class="pub-note" id="pubNote">链接较长（简历内容就装在链接里，不经过任何服务器）。发送时请整段复制；微信里建议「收藏→发送」或直接发下载的网页文件。</p>
+    </div>
     <div class="modal-actions actions3d">
       <button id="close3dBtn" class="ghost-btn small">关闭</button>
-      <button id="dl3dBtn" class="ghost-btn small">⬇️ 下载 HTML</button>
-      <button id="prev3dBtn" class="primary-btn small">👁 立即预览</button>
     </div>
-    <p class="paywall-foot">下载后双击即可打开；也可以上传到任意静态托管，当你的个人主页。</p>
   </div>
 </div>
 
@@ -202,6 +219,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="app.js?v=20260706a" type="module"></script>
+<script src="app.js?v=20260707a" type="module"></script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>简历加载中…</title>
+<meta name="robots" content="noindex">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#0b1026;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+#stage{position:fixed;inset:0;width:100%;height:100%;border:none;display:block}
+.state{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#c7cdff;text-align:center;padding:24px}
+.sp{width:40px;height:40px;border:3px solid rgba(255,255,255,.15);border-top-color:#8b93ff;border-radius:50%;animation:r .8s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+.err{color:#fca5a5;font-size:14px;line-height:1.7;max-width:520px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="state" id="loading"><div class="sp"></div><p>简历加载中…</p></div>
+<div class="state hidden" id="error"><p class="err" id="errMsg"></p></div>
+<script type="module">
+import { build3DHtml, decodeShareHash } from "./templates3d.js?v=20260707a";
+(async () => {
+  try {
+    const p = await decodeShareHash(location.hash);
+    if (!p || !p.d) throw new Error("链接里没有简历数据");
+    const html = build3DHtml(p.t, p.d, p.m || "auto");
+    const f = document.createElement("iframe");
+    f.id = "stage";
+    f.srcdoc = html;
+    document.body.appendChild(f);
+    document.getElementById("loading").classList.add("hidden");
+    const name = (p.d.zh && p.d.zh.name) || (p.d.en && p.d.en.name) || "Resume";
+    document.title = p.m === "en" ? name + " · Resume" : name + " · 简历";
+  } catch (e) {
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("error").classList.remove("hidden");
+    document.getElementById("errMsg").textContent = "简历打开失败：" + e.message;
+  }
+})();
+</script>
+</body>
+</html>

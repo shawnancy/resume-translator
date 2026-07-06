@@ -203,6 +203,63 @@ export function buildResumeData(zhInput, enInput, photo) {
   return data;
 }
 
+// ================= 分享链接（零存储：数据压缩后编进 URL 锚点） =================
+// 锚点格式: #g<base64url(gzip(json))> 或 #r<base64url(json)>(老浏览器降级)。
+// json = { t: 模板id, m: 语言模式, d: 简历数据 }。数据只活在链接里, 不存任何服务器。
+
+function b64urlEncode(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+export async function encodeShareHash(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  if (typeof CompressionStream !== "undefined") {
+    const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+    const buf = new Uint8Array(await new Response(cs).arrayBuffer());
+    return "g" + b64urlEncode(buf);
+  }
+  return "r" + b64urlEncode(bytes);
+}
+
+export async function decodeShareHash(hash) {
+  const s = (hash || "").replace(/^#/, "");
+  if (!s) throw new Error("链接里没有简历数据");
+  const kind = s[0];
+  let bytes;
+  try {
+    bytes = b64urlDecode(s.slice(1));
+  } catch {
+    throw new Error("链接不完整（可能被聊天工具截断了），请让对方重新完整复制整段链接");
+  }
+  let jsonBytes;
+  if (kind === "g") {
+    if (typeof DecompressionStream === "undefined") throw new Error("当前浏览器版本过旧，请换 Chrome / Edge / Safari 新版打开");
+    try {
+      const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      jsonBytes = new Uint8Array(await new Response(ds).arrayBuffer());
+    } catch {
+      throw new Error("链接不完整（可能被聊天工具截断了），请让对方重新完整复制整段链接");
+    }
+  } else if (kind === "r") jsonBytes = bytes;
+  else throw new Error("链接格式不对（可能被聊天工具截断，请完整复制整段链接）");
+  try {
+    return JSON.parse(new TextDecoder().decode(jsonBytes));
+  } catch {
+    throw new Error("链接不完整（可能被聊天工具截断了），请让对方重新完整复制整段链接");
+  }
+}
+
 // ================= 生成的 3D 页面 =================
 // 注意：以下运行时 JS/CSS 是"产物页"的代码，刻意不用反引号，方便包在模板字符串里。
 
@@ -318,9 +375,11 @@ const TPL_DECOR = {
 const RUNTIME_JS = `
 (function(){
   var body=document.body,stage=document.getElementById('stage');
+  var single=!(DATA.zh&&DATA.en); // 只带一种语言(仅中文/仅英文版) → 不显示切换按钮
   var lang=null;try{lang=localStorage.getItem('r3d_lang')}catch(e){}
   if(lang!=='zh'&&lang!=='en'){lang=((navigator.language||navigator.userLanguage||'en')+'').toLowerCase().indexOf('zh')===0?'zh':'en'}
   if(!DATA[lang])lang=DATA.zh?'zh':'en';
+  if(single)document.getElementById('langBtn').style.display='none';
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   var IO=('IntersectionObserver' in window)?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');IO.unobserve(e.target)}})},{threshold:.1}):null;
   function render(){
@@ -343,7 +402,7 @@ const RUNTIME_JS = `
         out+='</div>'});
       out+='</section>'});
     document.getElementById('secs').innerHTML=out;
-    document.getElementById('foot').textContent=lang==='zh'?'由「简历翻译器」生成 · 中英文自动切换':'Made with Resume Translator · bilingual auto-switch';
+    document.getElementById('foot').textContent=lang==='zh'?('由「简历翻译器」生成'+(single?'':' · 中英文自动切换')):('Made with Resume Translator'+(single?'':' · bilingual auto-switch'));
     document.getElementById('langBtn').textContent=lang==='zh'?'EN':'中文';
     var cards=document.querySelectorAll('.card');
     if(IO){cards.forEach(function(c){IO.observe(c)})}else{cards.forEach(function(c){c.classList.add('in')})}
@@ -402,11 +461,17 @@ const RUNTIME_JS = `
 })();
 `;
 
-export function build3DHtml(templateId, data) {
+// langMode: "auto"(双语自动切换) | "zh"(仅中文) | "en"(仅英文)
+export function build3DHtml(templateId, data, langMode = "auto") {
   const tpl = TEMPLATES_3D.find((t) => t.id === templateId) || TEMPLATES_3D[0];
-  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  const d = {
+    photo: data.photo || null,
+    zh: langMode === "en" ? null : data.zh,
+    en: langMode === "zh" ? null : data.en,
+  };
+  const json = JSON.stringify(d).replace(/</g, "\\u003c");
   const cfg = JSON.stringify(tpl.cfg);
-  const title = (data.zh?.name || data.en?.name || "Resume") + " · 3D 简历";
+  const title = (d.zh?.name || d.en?.name || "Resume") + (langMode === "en" ? " · Resume" : " · 简历");
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>

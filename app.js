@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml } from "./templates3d.js?v=20260706a";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707a";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -886,9 +886,9 @@ const TEMPLATES = [
     layout: "Single column on a deep-emerald background with light text. Emerald-green primary headings, gold accent on key markers. Calm, trustworthy, premium (best for screen / digital).",
     font: "clean sans-serif" },
 ];
-const LS_TPL = "rt_template";
+// 模板固定「自动」= 忠实复刻原简历版式(大王 07-07 定: 撤掉普通模板选择器, 风格只在 3D 简历里选)
 function getTemplate() {
-  return localStorage.getItem(LS_TPL) || "auto";
+  return "auto";
 }
 function styleBlock(id) {
   const t = TEMPLATES.find((x) => x.id === id);
@@ -905,66 +905,6 @@ function styleBlock(id) {
 - Fonts: ${t.font}.
 - Keep the accent color under ~10% of the page (markers/links only). Consistent spacing; one page if possible.`;
 }
-function tplThumb(t) {
-  const p = t.pal;
-  const barCol = t.dark ? "rgba(255,255,255,.16)" : p.line;
-  const bars = (n, light) =>
-    Array.from({ length: n })
-      .map((_, i) => `<div class="m-bar" style="background:${light || barCol};width:${[92, 78, 86, 68][i % 4]}%"></div>`)
-      .join("");
-  if (t.auto) {
-    return `<div class="mock" style="background:linear-gradient(135deg,#f6f7ff,#eef1ff)">
-      <div style="font-size:13px;line-height:1;margin-bottom:8px">✦</div>
-      <div class="m-h" style="background:${p.primary}"></div>
-      <div class="m-s" style="background:${p.accent}"></div>
-      ${bars(5)}
-    </div>`;
-  }
-  if (t.two) {
-    return `<div class="mock two" style="background:${p.bg}">
-      <div class="m-side" style="background:${p.side}">
-        <div class="m-h" style="background:rgba(255,255,255,.9);width:74%"></div>
-        ${bars(4, "rgba(255,255,255,.5)")}
-      </div>
-      <div class="m-main">
-        <div class="m-h" style="background:${p.primary}"></div>
-        <div class="m-s" style="background:${p.accent}"></div>
-        ${bars(5)}
-      </div></div>`;
-  }
-  return `<div class="mock" style="background:${p.bg}">
-    <div class="m-h" style="background:${p.primary}"></div>
-    <div class="m-s" style="background:${p.accent}"></div>
-    ${bars(6)}
-  </div>`;
-}
-function renderTemplates() {
-  const grid = $("templateGrid");
-  if (!grid) return;
-  const sel = getTemplate();
-  grid.innerHTML = TEMPLATES.map(
-    (t) => `<div class="tpl-card ${t.id === sel ? "selected" : ""}" data-tpl="${t.id}">
-      <div class="tpl-thumb">${tplThumb(t)}<div class="tpl-check">✓</div></div>
-      <div class="tpl-meta"><div class="tpl-name">${t.name}</div><div class="tpl-desc">${t.desc}</div></div>
-    </div>`
-  ).join("");
-  grid.querySelectorAll("[data-tpl]").forEach((c) =>
-    c.addEventListener("click", () => {
-      localStorage.setItem(LS_TPL, c.dataset.tpl);
-      grid.querySelectorAll(".tpl-card").forEach((x) => x.classList.toggle("selected", x === c));
-      updateTplLabel();
-    })
-  );
-  updateTplLabel();
-}
-// 折叠态 summary 上显示当前选中的模板名
-function updateTplLabel() {
-  const el = $("tplCur");
-  if (!el) return;
-  const t = TEMPLATES.find((x) => x.id === getTemplate());
-  el.textContent = t ? t.name : "自动（推荐）";
-}
-
 // ================= 3D 简历 =================
 // 灵感取自日常收集「AI简历模板39资源」: 玻璃拟态 / 赛博霓虹 / 复古终端。
 // 产物 = 零依赖单文件 HTML, 内嵌中英双份数据, 打开按浏览器语言自动切换, 可下载分享/当个人主页。
@@ -1007,14 +947,23 @@ function build3dData() {
   if (!zhOk && !enOk) throw new Error("请先生成简历，再制作 3D 版");
   return buildResumeData(zhOk ? zhDoc : null, enOk ? enDoc : null, current?.photo || null);
 }
+// 语言模式: auto=双语自动切 / zh=仅中文 / en=仅英文
+let langMode3d = "auto";
+document.querySelectorAll("#langPills .lp").forEach((b) =>
+  b.addEventListener("click", () => {
+    langMode3d = b.dataset.lm;
+    document.querySelectorAll("#langPills .lp").forEach((x) => x.classList.toggle("selected", x === b));
+  })
+);
 $("open3dBtn").addEventListener("click", () => {
   render3dGrid();
+  $("pubResult").classList.add("hidden");
   $("modal3d").classList.remove("hidden");
 });
 $("close3dBtn").addEventListener("click", () => $("modal3d").classList.add("hidden"));
 $("prev3dBtn").addEventListener("click", () => {
   try {
-    const html = build3DHtml(get3dTpl(), build3dData());
+    const html = build3DHtml(get3dTpl(), build3dData(), langMode3d);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
     window.open(url, "_blank");
     setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -1025,14 +974,62 @@ $("prev3dBtn").addEventListener("click", () => {
 $("dl3dBtn").addEventListener("click", () => {
   try {
     const data = build3dData();
-    const html = build3DHtml(get3dTpl(), data);
+    const html = build3DHtml(get3dTpl(), data, langMode3d);
     const name = (data.zh?.name || data.en?.name || "Resume").replace(/[\\/:*?"<>|\s]+/g, "_");
-    downloadBlob(new Blob([html], { type: "text/html" }), `3D简历_${name}.html`);
+    downloadBlob(new Blob([html], { type: "text/html" }), `简历网页_${name}.html`);
     flash($("dl3dBtn"), "✓ 已下载");
   } catch (e) {
     alert(e.message);
   }
 });
+// 一键发布: 简历数据压缩后装进 view.html 的链接锚点 —— 零服务器存储, 链接本身就是简历
+$("pub3dBtn").addEventListener("click", async () => {
+  const btn = $("pub3dBtn");
+  try {
+    btn.disabled = true;
+    btn.textContent = "正在生成链接…";
+    const data = build3dData();
+    const payload = {
+      t: get3dTpl(),
+      m: langMode3d,
+      d: {
+        photo: data.photo || null,
+        zh: langMode3d === "en" ? null : data.zh,
+        en: langMode3d === "zh" ? null : data.en,
+      },
+    };
+    let hash = await encodeShareHash(payload);
+    let note = "";
+    // 带照片可能让链接过长(聊天工具发不动) → 超限自动去掉照片重编
+    if (payload.d.photo && hash.length > 24000) {
+      payload.d.photo = null;
+      hash = await encodeShareHash(payload);
+      note = "照片体积较大，链接版已自动省略照片（下载的网页文件里包含照片）。";
+    }
+    const link = new URL("view.html", location.href).href + "#" + hash;
+    $("pubLink").value = link;
+    $("pubResult").classList.remove("hidden");
+    if (note) $("pubNote").textContent = note + " " + $("pubNote").dataset.base;
+    $("pubResult").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (e) {
+    alert("生成链接失败：" + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🚀 一键生成网页链接";
+  }
+});
+$("copyLinkBtn").addEventListener("click", async () => {
+  const v = $("pubLink").value;
+  try {
+    await navigator.clipboard.writeText(v);
+  } catch {
+    $("pubLink").select();
+    document.execCommand("copy");
+  }
+  flash($("copyLinkBtn"), "✓ 已复制");
+});
+$("openLinkBtn").addEventListener("click", () => window.open($("pubLink").value, "_blank"));
+$("pubNote").dataset.base = $("pubNote").textContent;
 
 // ================= 步骤导航 =================
 let maxStep = 1;
@@ -1159,5 +1156,4 @@ function hideOverlay() {
 }
 
 // ================= 初始化 =================
-renderTemplates();
 detectMode(); // 探测是否有后端代理，决定"内置key+付费" vs "自带key开源"模式
