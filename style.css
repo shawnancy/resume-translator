@@ -227,7 +227,7 @@ body.wide-step main{max-width:1240px}
   font-family:var(--serif);font-style:italic;font-size:18px;color:var(--accent);font-weight:600;
 }
 .wiz-step:after{content:"";flex:1;height:1px;background:var(--line);align-self:center}
-.grid3d{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid3d{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .tpl3d{
   position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;
   background:var(--card);transition:.16s;
@@ -240,6 +240,17 @@ body.wide-step main{max-width:1240px}
 .tpl-desc{font-size:11.5px;color:var(--muted);margin-top:1px}
 .t3d-meta{padding:9px 12px;border-top:1px solid var(--line-soft)}
 .t3d-thumb{height:104px;position:relative;overflow:hidden}
+/* mini 职业档案 */
+.t3d-dossier{background:#FBF6EA;background-image:linear-gradient(rgba(22,20,15,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(22,20,15,.05) 1px,transparent 1px);background-size:18px 18px;padding:12px}
+.ds-eye{width:34%;height:4px;background:#0A48E0;margin-bottom:8px}
+.ds-name{width:62%;height:12px;background:#16140F;margin-bottom:7px}
+.ds-rule{height:2px;background:#16140F;margin-bottom:9px}
+.ds-row{display:flex;align-items:center;gap:5px;margin-bottom:7px}
+.ds-row i{display:block}
+.ds-dot{width:5px;height:5px;background:#0A48E0}
+.ds-date{width:22%;height:6px;border:1px solid rgba(10,72,224,.5);background:rgba(10,72,224,.08)}
+.ds-t{flex:1;height:6px;background:rgba(22,20,15,.35)}
+.ds-t.w50{flex:0 0 50%}
 /* mini 星空玻璃 */
 .t3d-glass{background:radial-gradient(80px 60px at 75% -10%,#3b2f78,transparent 70%),radial-gradient(70px 55px at 5% 110%,#14406b,transparent 70%),#0b1026}
 .g-card{

@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707a";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707c";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -933,6 +933,10 @@ function render3dGrid() {
   );
 }
 function thumb3d(id) {
+  if (id === "dossier")
+    return `<div class="ds-eye"></div><div class="ds-name"></div><div class="ds-rule"></div>
+      <div class="ds-row"><i class="ds-dot"></i><i class="ds-date"></i><i class="ds-t"></i></div>
+      <div class="ds-row"><i class="ds-dot"></i><i class="ds-date"></i><i class="ds-t w50"></i></div>`;
   if (id === "glass")
     return `<div class="g-star s1"></div><div class="g-star s2"></div><div class="g-star s3"></div>
       <div class="g-card"><i></i><i class="w60"></i><i class="w80"></i></div>`;
