@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707e";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707f";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -364,6 +364,40 @@ async function ocrImages(images) {
 // ================= 翻译生成 =================
 const SPLIT = "<!--===SPLIT===-->";
 $("translateBtn").addEventListener("click", runTranslate);
+
+// ===== 免翻译直通道(07-07 大王: 可以不翻译直接进简历模块) =====
+// 原文简历(粘贴/PDF/docx/图片OCR) → 结构化HTML挂中文栏 → 直接开3D向导(默认仅中文)。
+// 之后想要英文版, 用编辑页的「改完中文重新翻译」即可。
+function textToHtml(text) {
+  const lines = String(text || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const body = lines.map((l, i) => (i === 0 ? `<h1>${escapeHtml(l)}</h1>` : `<p>${escapeHtml(l)}</p>`)).join("\n");
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    @page{size:A4;margin:0}body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;width:794px;padding:40px;font-size:14px;line-height:1.7;color:#222}
+    h1{font-size:26px;margin:0 0 10px}p{margin:0 0 8px}
+  </style></head><body>${body}</body></html>`;
+}
+$("skipBtn").addEventListener("click", async () => {
+  if (!current) return alert("请先上传或粘贴简历");
+  try {
+    let t = current.text;
+    if (!t && current.images?.length) t = await ocrImages(current.images);
+    if (!t || t.replace(/\s/g, "").length < 20) throw new Error("没读到足够的简历文字，请换清晰一点的文件或直接粘贴文本");
+    const zhHtml = injectPhoto(textToHtml(t), current.photo || null);
+    mountEditable($("zhFrame"), zhHtml);
+    $("enFrame").removeAttribute("srcdoc");
+    $("bilingual").className = "bilingual view-zh";
+    document.querySelectorAll(".vt").forEach((x) => x.classList.toggle("active", x.dataset.view === "zh"));
+    goStep(2);
+    // 未翻译 → 3D 默认仅中文
+    langMode3d = "zh";
+    document.querySelectorAll("#langPills .lp").forEach((x) => x.classList.toggle("selected", x.dataset.lm === "zh"));
+    setTimeout(open3dWizard, 350);
+  } catch (e) {
+    alert(e.message);
+  } finally {
+    hideOverlay();
+  }
+});
 
 function currentOpts() {
   return { lang: $("targetLang").value, tone: $("toneSel").value, template: getTemplate() };
