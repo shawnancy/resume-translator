@@ -5,6 +5,12 @@
 
 export const TEMPLATES_3D = [
   {
+    id: "game",
+    name: "横版闯关",
+    desc: "游戏世界 · 走路小人 · 简历当关卡",
+    cfg: { tilt: false, tiltMax: 0, fx: "none", typing: false, layout: "game" },
+  },
+  {
     id: "dossier",
     name: "职业档案",
     desc: "奶油纸 · 电光蓝 · 档案编排",
@@ -317,6 +323,81 @@ body.switching .stage{opacity:0;filter:blur(4px)}
 `;
 
 const TPL_CSS = {
+  game: `
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#2B3A4A;overflow-x:hidden;
+background:linear-gradient(#6FC3EF,#A8DCF5 52%,#DDF1FB 76%,#EAF7FD)}
+.scene{display:none}
+#game{position:relative}
+body.switching #game{opacity:0;filter:blur(4px)}
+#game{transition:opacity .22s,filter .22s}
+#langBtn{background:#fff;border:3px solid #2E5F8A;color:#2E5F8A;border-radius:12px;font-weight:800}
+.g-sun{position:fixed;top:7vh;right:11vw;width:104px;height:104px;border-radius:50%;z-index:1;pointer-events:none;
+background:radial-gradient(circle at 42% 40%,#FFEDB0,#FFCF4D 66%);box-shadow:0 0 70px rgba(255,214,90,.8)}
+.g-layer{position:fixed;top:0;left:0;height:44vh;width:100%;z-index:1;pointer-events:none;will-change:transform}
+.g-cloud{position:absolute;width:132px;height:38px;background:#fff;border-radius:30px;opacity:.95}
+.g-cloud:before{content:"";position:absolute;left:20px;top:-20px;width:54px;height:44px;background:#fff;border-radius:50%}
+.g-cloud:after{content:"";position:absolute;right:22px;top:-12px;width:40px;height:32px;background:#fff;border-radius:50%}
+.g-hills{position:fixed;left:0;bottom:96px;height:210px;width:calc(100% + 1500px);z-index:1;pointer-events:none;background-repeat:repeat-x;will-change:transform}
+.g-hills.hA{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='210'%3E%3Cellipse cx='170' cy='250' rx='260' ry='150' fill='%238FCF7E'/%3E%3Cellipse cx='540' cy='260' rx='300' ry='170' fill='%238FCF7E'/%3E%3C/svg%3E")}
+.g-hills.hB{bottom:88px;height:170px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='170'%3E%3Cellipse cx='140' cy='215' rx='230' ry='130' fill='%2367B25C'/%3E%3Cellipse cx='470' cy='225' rx='260' ry='150' fill='%2367B25C'/%3E%3C/svg%3E")}
+.g-trees{position:fixed;left:0;bottom:92px;height:140px;width:100%;z-index:2;pointer-events:none;will-change:transform}
+.g-tree{position:absolute;bottom:0;width:56px;height:130px}
+.g-tree:after{content:"";position:absolute;left:24px;bottom:0;width:9px;height:52px;background:#8A5B33;border-radius:3px}
+.g-tree:before{content:"";position:absolute;left:0;top:0;width:56px;height:88px;background:#3E8E4E;border-radius:50% 50% 46% 46%;box-shadow:inset -8px -10px 0 rgba(0,0,0,.09)}
+.g-tree.bush{height:44px}
+.g-tree.bush:after{display:none}
+.g-tree.bush:before{top:auto;bottom:0;height:40px;width:64px;background:#57A84F;border-radius:26px}
+.g-ground{position:fixed;left:0;right:0;bottom:0;height:96px;z-index:3;
+background:linear-gradient(#6DBE5B 0 20px,#E4CE92 20px 24px,#D9B36A 24px 100%)}
+.g-ground:after{content:"";position:absolute;left:0;right:0;top:52px;height:6px;opacity:.85;
+background:repeating-linear-gradient(90deg,#FFF6DC 0 34px,transparent 34px 88px);background-position-x:var(--rx,0px)}
+.gworld{position:fixed;left:0;top:0;bottom:96px;z-index:4;will-change:transform}
+.gn{position:absolute;bottom:34px;opacity:0;transform:translateY(50px);transition:transform .55s cubic-bezier(.2,.8,.3,1.25),opacity .5s}
+.gn.in{opacity:1;transform:none}
+.g-start{bottom:auto;top:13vh}
+.g-eye{font-weight:800;letter-spacing:.2em;font-size:11px;color:#2E7DB2;margin:0 0 12px}
+.g-name{font-size:clamp(40px,7vw,66px);font-weight:900;color:#1F4E79;line-height:1.05;margin:0;
+text-shadow:0 3px 0 #fff,0 7px 0 rgba(31,78,121,.18)}
+.g-tag{margin:12px 0 0;font-size:15px;font-weight:600;color:#33607F}
+.g-chips{margin-top:14px}
+.gchip{background:#fff;border:2px solid #2E5F8A;color:#2E5F8A;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;display:inline-block;margin:3px 5px 3px 0}
+.g-go{font-weight:800;color:#E5533C;margin-top:16px;animation:gbob 1.1s ease-in-out infinite alternate}
+@keyframes gbob{to{transform:translateY(7px)}}
+.g-level{text-align:center}
+.flagpole{width:6px;height:150px;background:#8A5B33;margin:0 auto;border-radius:3px;box-shadow:2px 0 0 rgba(0,0,0,.08)}
+.flag{position:absolute;top:-2px;left:50%;background:#E5533C;color:#fff;font-weight:900;font-size:14px;letter-spacing:.04em;
+padding:7px 16px 7px 10px;clip-path:polygon(0 0,100% 0,84% 50%,100% 100%,0 100%)}
+.lv-t{display:table;margin:10px auto 0;font-weight:800;font-size:14px;color:#2E5F8A;background:#fff;border:2px solid #2E5F8A;border-radius:10px;padding:4px 12px;box-shadow:0 3px 0 rgba(46,95,138,.2)}
+.g-board{background:#FFF9EC;border:3px solid #7A5230;border-radius:14px;padding:18px 20px 15px;box-shadow:0 6px 0 rgba(90,60,30,.28)}
+.g-board:before,.g-board:after{content:"";position:absolute;bottom:-34px;width:10px;height:34px;background:#8A5B33;z-index:-1}
+.g-board:before{left:16%}
+.g-board:after{right:16%}
+.b-plate{display:flex;gap:9px 12px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.b-date{font-weight:800;font-size:11.5px;background:#FFD44D;border:2px solid #7A5230;border-radius:8px;padding:2px 9px;color:#5A3A18;white-space:nowrap}
+.b-t{font-weight:800;font-size:15.5px;color:#3B2A14}
+.i-lines li{font-size:13px;color:#4A3A22;padding-left:15px;margin-bottom:4px}
+.i-lines li:before{content:"•";color:#C97B2A;top:0}
+.g-tags .gtag{display:inline-block;background:#FFE9B3;border:2px solid #C99433;color:#6B4A12;border-radius:9px;padding:3px 10px;font-size:12px;font-weight:700;margin:3px 5px 3px 0;transform:rotate(-1deg)}
+.g-tags .gtag:nth-child(2n){transform:rotate(1.4deg);background:#D9F0C8;border-color:#6FA653;color:#33591F}
+.g-fin{font-size:clamp(30px,5vw,44px);font-weight:900;color:#1F4E79;margin:0;text-shadow:0 3px 0 #fff}
+.g-char{position:fixed;left:13vw;bottom:88px;width:46px;height:100px;z-index:5;animation:cbob 2.6s ease-in-out infinite}
+@keyframes cbob{50%{transform:translateY(-3px)}}
+.c-head{position:absolute;top:0;left:9px;width:28px;height:28px;background:#F7C6A0;border-radius:50%}
+.c-head:before{content:"";position:absolute;top:-4px;left:-2px;right:-2px;height:15px;background:#2B2B2B;border-radius:14px 14px 5px 5px}
+.c-body{position:absolute;top:26px;left:7px;width:32px;height:38px;background:#E5533C;border-radius:9px;box-shadow:inset -6px 0 0 rgba(0,0,0,.08)}
+.c-arm{position:absolute;top:30px;left:20px;width:8px;height:28px;background:#D8452F;border-radius:5px;transform-origin:4px 3px;animation:cswing .46s ease-in-out infinite alternate;animation-play-state:paused}
+.c-leg{position:absolute;top:62px;width:9px;height:34px;background:#31537A;border-radius:5px;transform-origin:4px 3px;animation:cstep .4s ease-in-out infinite alternate;animation-play-state:paused}
+.c-leg.l1{left:12px}
+.c-leg.l2{left:25px;animation-direction:alternate-reverse}
+@keyframes cstep{from{transform:rotate(26deg)}to{transform:rotate(-26deg)}}
+@keyframes cswing{from{transform:rotate(-20deg)}to{transform:rotate(20deg)}}
+.g-char.walk .c-leg,.g-char.walk .c-arm{animation-play-state:running}
+.g-hud{position:fixed;top:16px;left:16px;z-index:9;background:#fff;border:3px solid #2E5F8A;color:#2E5F8A;border-radius:12px;padding:7px 15px;font-weight:900;font-size:13px;letter-spacing:.05em;box-shadow:0 4px 0 rgba(46,95,138,.22)}
+.g-hint{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:9;background:rgba(255,255,255,.9);border-radius:20px;padding:5px 15px;font-size:11.5px;font-weight:700;color:#33607F;letter-spacing:.08em}
+.foot{display:none}
+@media(max-width:640px){.g-char{left:7vw}.g-hud{font-size:11.5px;padding:6px 11px}.g-sun{width:74px;height:74px}}
+@media(prefers-reduced-motion:reduce){.g-char,.g-go{animation:none}}
+`,
   dossier: `
 body{font-family:"Helvetica Neue",Helvetica,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#16140F;background:#FBF6EA;
 background-image:linear-gradient(rgba(22,20,15,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(22,20,15,.04) 1px,transparent 1px);background-size:56px 56px}
@@ -426,6 +507,7 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;c
 };
 
 const TPL_DECOR = {
+  game: "",
   dossier: '<div id="prog"></div>',
   glass: '<div class="orb a"></div><div class="orb b"></div>',
   neon: '<div class="sun"></div><div class="grid-floor"></div>',
@@ -507,11 +589,120 @@ const RUNTIME_JS = `
       out+='</section>'});
     document.getElementById('secs').innerHTML=out;
   }
+  // ===== 横版闯关(rleonardi 式): 页面滚动=世界横移, 简历节=关卡旗+路牌 =====
+  var gNodes=[],gHuds=[],gBound=false,gWalkT=null;
+  function renderGame(d){
+    var g=document.getElementById('game');
+    if(!g){g=document.createElement('div');g.id='game';document.body.appendChild(g)}
+    var vw=window.innerWidth;
+    var BW=Math.min(470,Math.floor(vw*0.78));
+    var x=Math.max(110,Math.floor(vw*0.1));
+    gNodes=[];gHuds=[];
+    var html='';
+    function node(cls,w,inner,hud){
+      html+='<div class="gn '+cls+'" style="left:'+x+'px;width:'+w+'px">'+inner+'</div>';
+      gNodes.push(x);
+      if(hud)gHuds.push({x:x,label:hud});
+      x+=w+Math.max(210,Math.floor(vw*0.16));
+    }
+    var chips=(d.contacts||[]).map(function(c){return '<span class="gchip">'+esc(c)+'</span>'}).join('');
+    node('g-start',Math.min(540,Math.floor(vw*0.82)),
+      '<p class="g-eye">'+(lang==='zh'?'一份可以走进去的简历':'A RESUME YOU CAN WALK THROUGH')+'</p>'+
+      '<h1 class="g-name" id="bigName">'+esc(d.name)+'</h1>'+
+      (d.tagline?'<p class="g-tag">'+esc(d.tagline)+'</p>':'')+
+      (chips?'<div class="g-chips">'+chips+'</div>':'')+
+      '<p class="g-go">'+(lang==='zh'?'▼ 向下滚动，开始旅程':'▼ SCROLL TO START')+'</p>',
+      lang==='zh'?'出发':'START');
+    d.sections.forEach(function(s,i){
+      var hud='LV.'+pad(i+1)+' · '+s.title;
+      node('g-level',210,
+        '<div class="flag">LV.'+pad(i+1)+'</div><div class="flagpole"></div><div class="lv-t">'+esc(s.title)+'</div>',hud);
+      if(s.kind==='work'||s.kind==='project'||s.kind==='edu'){
+        s.items.forEach(function(it){
+          var sd=splitDate(it.head||'');
+          node('g-board',BW,
+            '<div class="b-plate">'+(sd.date?'<span class="b-date">'+esc(sd.date)+'</span>':'')+
+            '<span class="b-t">'+esc(sd.title||s.title)+'</span></div>'+
+            (it.lines&&it.lines.length?linesHtml(it.lines):''));
+        });
+      }else if(s.kind==='skill'){
+        var tags=[],rest=[];
+        s.items.forEach(function(it){if(it.head)rest.push(it.head);
+          (it.lines||[]).forEach(function(l){
+            var parts=l.split(/[、，,;；/｜|]+/).map(function(p){return p.trim()}).filter(Boolean);
+            var shorts=parts.filter(function(p){return p.length<=26});
+            if(shorts.length>=2){shorts.forEach(function(p){tags.push(p)});
+              parts.forEach(function(p){if(p.length>26)rest.push(p)})}
+            else rest.push(l)})});
+        var inner='<div class="b-plate"><span class="b-t">'+esc(s.title)+'</span></div>';
+        if(tags.length)inner+='<div class="g-tags">'+tags.map(function(t){return '<span class="gtag">'+esc(t)+'</span>'}).join('')+'</div>';
+        if(rest.length)inner+=linesHtml(rest);
+        node('g-board',BW,inner);
+      }else{
+        var ls=[];
+        s.items.forEach(function(it){if(it.head)ls.push(it.head);(it.lines||[]).forEach(function(l){ls.push(l)})});
+        node('g-board',BW,'<div class="b-plate"><span class="b-t">'+esc(s.title)+'</span></div>'+linesHtml(ls));
+      }
+    });
+    node('g-end',Math.min(540,Math.floor(vw*0.82)),
+      '<h2 class="g-fin">'+(lang==='zh'?'旅程到这里就结束了':'THE END')+'</h2>'+
+      '<p class="g-tag">'+(lang==='zh'?'期待与你聊聊。':'I would love to talk.')+'</p>'+
+      (chips?'<div class="g-chips">'+chips+'</div>':''),
+      lang==='zh'?'终点':'THE END');
+    var worldW=x+Math.floor(vw*0.6);
+    var clouds='';
+    for(var ci=0;ci<14;ci++){
+      clouds+='<div class="g-cloud" style="left:'+((ci*617)%Math.max(1200,Math.floor(worldW*0.4)))+'px;top:'+(((ci*97)%170)+18)+'px;transform:scale('+(0.6+(ci%3)*0.35)+')"></div>';
+    }
+    var trees='';
+    for(var ti=0;ti<Math.floor(worldW*0.95/460)+2;ti++){
+      trees+='<div class="g-tree'+(ti%3===2?' bush':'')+'" style="left:'+(240+ti*460+(ti%2)*130)+'px"></div>';
+    }
+    g.innerHTML=
+      '<div class="g-sun"></div>'+
+      '<div class="g-layer" id="glc">'+clouds+'</div>'+
+      '<div class="g-hills hA" id="glhA"></div>'+
+      '<div class="g-hills hB" id="glhB"></div>'+
+      '<div class="g-trees" id="glt">'+trees+'</div>'+
+      '<div class="g-ground" id="ggr"></div>'+
+      '<div class="gworld" id="gworld" style="width:'+worldW+'px">'+html+'</div>'+
+      '<div class="g-char" id="gchar"><div class="c-head"></div><div class="c-body"></div><div class="c-arm"></div><div class="c-leg l1"></div><div class="c-leg l2"></div></div>'+
+      '<div class="g-hud" id="ghud"></div>'+
+      '<div class="g-hint">'+(lang==='zh'?'滚动 / 方向键 前进':'SCROLL / ARROW KEYS')+'</div>'+
+      '<div style="height:'+worldW+'px"></div>';
+    if(!gBound){gBound=true;window.addEventListener('scroll',gTick,{passive:true});window.addEventListener('resize',function(){if(CFG.layout==='game')renderGame(DATA[lang])})}
+    window.scrollTo(0,0);
+    gTick();
+  }
+  function gTick(){
+    if(CFG.layout!=='game')return;
+    var sx=window.scrollY||document.documentElement.scrollTop||0;
+    var vw=window.innerWidth;
+    var el=document.getElementById('gworld');if(!el)return;
+    el.style.transform='translateX('+(-sx)+'px)';
+    document.getElementById('glc').style.transform='translateX('+(-sx*0.22)+'px)';
+    document.getElementById('glhA').style.transform='translateX('+(-(sx*0.35)%720)+'px)';
+    document.getElementById('glhB').style.transform='translateX('+(-(sx*0.55)%640)+'px)';
+    document.getElementById('glt').style.transform='translateX('+(-sx*0.85)+'px)';
+    document.getElementById('ggr').style.setProperty('--rx',(-sx)+'px');
+    var ch=document.getElementById('gchar');
+    ch.classList.add('walk');
+    if(gWalkT)clearTimeout(gWalkT);
+    gWalkT=setTimeout(function(){ch.classList.remove('walk')},160);
+    var nodes=document.querySelectorAll('.gn');
+    for(var i=0;i<gNodes.length;i++){
+      if(gNodes[i]<sx+vw*1.02)nodes[i].classList.add('in');
+    }
+    var label='';
+    for(var j=0;j<gHuds.length;j++){if(gHuds[j].x<=sx+vw*0.38)label=gHuds[j].label}
+    document.getElementById('ghud').textContent=label||gHuds[0].label;
+  }
   function render(){
     var d=DATA[lang];
     document.documentElement.lang=lang==='zh'?'zh-CN':'en';
     document.title=d.name+(lang==='zh'?' · 简历':' · Resume');
-    if(CFG.layout==='dossier')renderDossier(d);else renderClassic(d);
+    if(CFG.layout==='game')renderGame(d);
+    else if(CFG.layout==='dossier')renderDossier(d);else renderClassic(d);
     document.getElementById('foot').textContent=lang==='zh'?('由「简历翻译器」生成'+(single?'':' · 中英文自动切换')):('Made with Resume Translator'+(single?'':' · bilingual auto-switch'));
     document.getElementById('langBtn').textContent=lang==='zh'?'EN':'中文';
     var cards=document.querySelectorAll('.card');

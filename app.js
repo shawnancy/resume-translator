@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707c";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707d";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -418,7 +418,7 @@ async function runTranslate() {
 // ---- Prompt 组装 ----
 function sharedRules(hasPhoto) {
   const imgRule = hasPhoto
-    ? 'The candidate has a photo. Put the literal placeholder token __PHOTO_0__ (as plain text, NOT an <img> tag, exactly once) at EXACTLY the same position as the photo in the ORIGINAL resume — same corner, same side, same section (look at the original layout; if you cannot tell, use the top-right of the header). Reproducing the original photo position is a hard requirement, do not move it to a different corner. Do NOT wrap it in any rounded/circular/oval container and do NOT add border-radius or a mask around it — it will be replaced with a plain rectangular photo. Do not add any other <img>.'
+    ? "Do NOT include any <img> tag or photo placeholder — the candidate photo is inserted programmatically at the top-right of the header afterwards. Keep the top-right area of the header free of long text so a 96px-wide photo fits beside it."
     : "No <img> tags.";
   return `HARD RULES (apply to EACH resume):
 - A complete self-contained HTML document starting with <!DOCTYPE html>. All CSS inline in one <style> tag. No external resources, no JavaScript. ${imgRule}
@@ -466,11 +466,17 @@ ${styleBlock(template)}
 ${sharedRules(hasPhoto)}`;
 }
 
-// 把 __PHOTO_0__ 占位替换成我完全控制的矩形 <img>(防模型加圆角/椭圆)
+// 照片确定性注入(07-07 大王实测模型摆位必翻车: 曾贴在 Skills 标题旁) —— 不再信模型:
+// 清掉任何残留占位, 由我们把照片以 float:right 插在第一个 <h1>(名字)前 → 恒定出现在页眉右上。
 function injectPhoto(html, photo) {
   if (!photo || !html) return html;
-  const tag = `<img src="${photo}" alt="photo" style="width:92px;height:auto;border-radius:0;object-fit:contain;display:inline-block;vertical-align:top">`;
-  return html.split("__PHOTO_0__").join(tag);
+  let s = html.split("__PHOTO_0__").join("");
+  const block =
+    `<div style="float:right;width:96px;margin:0 0 10px 16px"><img src="${photo}" alt="photo" ` +
+    `style="width:96px;height:auto;display:block;border-radius:0"></div>`;
+  if (/<h1[\s>]/i.test(s)) return s.replace(/(<h1[\s>])/i, block + "$1");
+  if (/<body[^>]*>/i.test(s)) return s.replace(/(<body[^>]*>)/i, "$1" + block);
+  return block + s;
 }
 
 // ---- 生成：中英两份 / 仅英文 ----
@@ -933,6 +939,9 @@ function render3dGrid() {
   );
 }
 function thumb3d(id) {
+  if (id === "game")
+    return `<div class="gm-sun"></div><div class="gm-cloud"></div><div class="gm-flag"></div>
+      <div class="gm-board"><i></i><i class="w60"></i></div><div class="gm-char"></div><div class="gm-ground"></div>`;
   if (id === "dossier")
     return `<div class="ds-eye"></div><div class="ds-name"></div><div class="ds-rule"></div>
       <div class="ds-row"><i class="ds-dot"></i><i class="ds-date"></i><i class="ds-t"></i></div>
