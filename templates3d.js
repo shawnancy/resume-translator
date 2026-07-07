@@ -30,9 +30,9 @@ export const TEMPLATES_3D = [
   },
   {
     id: "terminal",
-    name: "复古终端",
-    desc: "CRT 扫描线 · 打字机",
-    cfg: { tilt: false, tiltMax: 0, fx: "rain", typing: true },
+    name: "复古电脑",
+    desc: "3D 电脑开机 · 走进屏幕",
+    cfg: { tilt: false, tiltMax: 0, fx: "rain", typing: true, intro: "computer" },
   },
 ];
 
@@ -503,6 +503,45 @@ body{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;c
 .i-lines li{color:#86efac}
 .i-lines li:before{content:"-";top:0;font-size:13px}
 .foot{color:#4ade80}
+/* --- 开机场景 --- */
+.pc-scene{position:fixed;inset:0;z-index:60;overflow:hidden;display:flex;align-items:center;justify-content:center;
+transform-origin:50% 42%;transition:transform 1.5s cubic-bezier(.65,.02,.35,1),opacity 1.2s ease .3s}
+.pc-scene.zoom{transform:scale(8);opacity:0;pointer-events:none}
+.pc-room{position:absolute;inset:0;background:radial-gradient(1000px 600px at 50% 30%,#2A1E4E 0%,#181031 55%,#0C0819 100%)}
+.pc-desk{position:absolute;left:-6%;right:-6%;bottom:0;height:24vh;
+background:linear-gradient(#7A5634,#5A3D22 60%,#452E18);border-top:5px solid #8D6740;
+box-shadow:0 -18px 50px rgba(0,0,0,.5)}
+.pc-set{position:relative;transform:rotateY(-4deg);perspective:800px;margin-bottom:6vh}
+.pc-monitor{position:relative;width:min(560px,84vw);background:linear-gradient(160deg,#E2DACA,#C6BBA3 70%,#B0A489);
+border-radius:22px;padding:24px 24px 42px;box-shadow:14px 20px 0 rgba(0,0,0,.35),inset 0 3px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(0,0,0,.15)}
+.pc-crt{position:relative;aspect-ratio:4/3;background:#050805;border-radius:16px;overflow:hidden;
+box-shadow:inset 0 0 70px rgba(0,0,0,.95),inset 0 0 10px #000,0 0 0 4px #3A342A}
+.pc-crt.lit{box-shadow:inset 0 0 70px rgba(0,30,0,.9),inset 0 0 10px #000,0 0 0 4px #3A342A,0 0 46px rgba(74,222,128,.24);
+animation:pcflick .12s linear 2}
+@keyframes pcflick{50%{filter:brightness(2.4)}}
+.pc-boot{position:absolute;inset:0;padding:7% 8%;font-family:ui-monospace,Menlo,monospace;font-size:clamp(11px,1.8vw,16px);
+line-height:2;color:#4ade80;text-shadow:0 0 9px rgba(74,222,128,.75);white-space:pre-wrap}
+.pc-boot:after{content:"\\258d";animation:blink 1s steps(1) infinite}
+.pc-glass{position:absolute;inset:0;pointer-events:none;
+background:radial-gradient(120% 90% at 22% 12%,rgba(255,255,255,.14),transparent 46%),repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0 1px,transparent 1px 3px);
+border-radius:16px}
+.pc-badge{position:absolute;left:34px;bottom:13px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.2em;color:#6E6350}
+.pc-pwr{position:absolute;right:36px;bottom:14px;width:15px;height:15px;border-radius:50%;background:#3A352C;box-shadow:inset 0 2px 3px #000}
+.pc-pwr.on{background:#5CFF7E;box-shadow:0 0 12px #5CFF7E,inset 0 1px 2px rgba(0,0,0,.4)}
+.pc-kb{width:min(430px,64vw);height:44px;margin:16px auto 0;border-radius:8px;
+background:linear-gradient(#D8CFBC,#BCB097);transform:perspective(300px) rotateX(38deg);
+box-shadow:0 10px 0 rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.5);
+background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.13) 0 2px,transparent 2px 26px),repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 2px,transparent 2px 12px)}
+.pc-note{position:absolute;left:12vw;bottom:13vh;width:86px;height:86px;background:#FFE873;transform:rotate(-7deg);
+padding:12px 10px;font-weight:800;font-size:13px;color:#6B5A10;box-shadow:3px 5px 0 rgba(0,0,0,.3);font-family:inherit}
+.pc-mug{position:absolute;right:13vw;bottom:14vh;width:54px;height:62px;background:linear-gradient(#B33A3A,#8E2B2B);border-radius:6px 6px 10px 10px;box-shadow:4px 6px 0 rgba(0,0,0,.35)}
+.pc-mug:after{content:"";position:absolute;right:-20px;top:12px;width:22px;height:30px;border:7px solid #8E2B2B;border-left:none;border-radius:0 14px 14px 0}
+.pc-cta{position:absolute;bottom:5vh;left:50%;transform:translateX(-50%);
+background:#0A0F0A;color:#5CFF7E;border:2px solid #5CFF7E;border-radius:12px;padding:12px 26px;
+font:800 15px ui-monospace,Menlo,monospace;letter-spacing:.12em;cursor:pointer;
+box-shadow:0 0 22px rgba(92,255,126,.35);animation:ctapulse 1.4s ease-in-out infinite alternate}
+@keyframes ctapulse{to{box-shadow:0 0 40px rgba(92,255,126,.65);transform:translateX(-50%) translateY(-3px)}}
+@media(max-width:640px){.pc-note{left:4vw;width:66px;height:66px;font-size:11px}.pc-mug{right:5vw;transform:scale(.8)}}
 `,
 };
 
@@ -767,7 +806,37 @@ const RUNTIME_JS = `
     };
     init();tick();
   }
+  // ===== 复古电脑开机场景(henryheffernan 式: 书桌CRT→按电源→BIOS自检→镜头冲进屏幕) =====
+  function pcIntro(){
+    var ov=document.createElement('div');ov.className='pc-scene';ov.id='pcov';
+    ov.innerHTML='<div class="pc-room"></div><div class="pc-desk"></div>'+
+      '<div class="pc-set"><div class="pc-monitor"><div class="pc-crt"><div class="pc-boot" id="pcboot"></div><div class="pc-glass"></div></div>'+
+      '<div class="pc-badge">RESUME·TRON 2000</div><div class="pc-pwr" id="pcpwr"></div></div>'+
+      '<div class="pc-kb"></div></div>'+
+      '<div class="pc-note">'+(lang==='zh'?'看我简历!':'MY RESUME!')+'</div>'+
+      '<div class="pc-mug"></div>'+
+      '<button class="pc-cta" id="pccta" type="button">'+(lang==='zh'?'\u25b8 按下电源 POWER':'\u25b8 PRESS POWER')+'</button>';
+    document.body.appendChild(ov);
+    var started=false;
+    function boot(){
+      if(started)return;started=true;
+      document.getElementById('pcpwr').classList.add('on');
+      var cta=document.getElementById('pccta');if(cta)cta.style.display='none';
+      var crt=ov.querySelector('.pc-crt');crt.classList.add('lit');
+      var lines=['RESUME-TRON 2000 BIOS v2.6','MEM CHECK ........ 640K OK','DISK 0: RESUME.EXE FOUND','LOADING \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 100%','ENTERING SCREEN...'];
+      var b=document.getElementById('pcboot'),li=0;
+      var t=setInterval(function(){
+        b.textContent+=lines[li]+'\\n';li++;
+        if(li>=lines.length){clearInterval(t);
+          setTimeout(function(){ov.classList.add('zoom');
+            setTimeout(function(){ov.remove()},1500)},430)}
+      },360);
+    }
+    ov.addEventListener('click',boot);
+    document.addEventListener('keydown',function(e){boot()},{once:true});
+  }
   render();
+  if(CFG.intro==='computer'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)pcIntro();
 })();
 `;
 

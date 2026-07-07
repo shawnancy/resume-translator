@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707d";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707e";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
