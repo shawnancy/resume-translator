@@ -2,7 +2,7 @@
 // 多引擎可插拔：DeepSeek（文字型，OpenAI 兼容）/ Gemini（多模态可看图）
 // 管线：输入 → {图像[], 文本} → LLM 翻译+重建 HTML → 预览/导出
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
-import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260707g";
+import { TEMPLATES_3D, buildResumeData, build3DHtml, encodeShareHash } from "./templates3d.js?v=20260708a";
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
 
@@ -976,6 +976,12 @@ function thumb3d(id) {
   if (id === "game")
     return `<div class="gm-sun"></div><div class="gm-cloud"></div><div class="gm-flag"></div>
       <div class="gm-board"><i></i><i class="w60"></i></div><div class="gm-char"></div><div class="gm-ground"></div>`;
+  if (id === "room")
+    return `<div class="rmm-wall"></div><div class="rmm-floor"></div><div class="rmm-frame"><i></i><i class="w60"></i></div><div class="rmm-frame f2"><i></i><i class="w60"></i></div><div class="rmm-lamp"></div><div class="gm-char rmm-c"></div>`;
+  if (id === "arena")
+    return `<div class="arm-num">01</div><div class="arm-bar"></div><div class="arm-l1"></div><div class="arm-l2"></div><div class="arm-flag"></div>`;
+  if (id === "editions")
+    return `<div class="edm-bg"></div><div class="edm-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="edm-name">NAME</div>`;
   if (id === "orbit")
     return `<div class="ob-star s1"></div><div class="ob-star s2"></div>
       <div class="ob-ring"><div class="ob-p p1"><i></i><i class="w60"></i></div><div class="ob-p p2"></div><div class="ob-p p3"></div></div>`;

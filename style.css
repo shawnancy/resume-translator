@@ -300,6 +300,37 @@ body.wide-step main{max-width:1240px}
 .n-card i{display:block;height:4px;border-radius:2px;background:rgba(34,225,255,.8);margin-bottom:5px}
 .n-card i.w60{width:60%;background:rgba(255,62,165,.75)}
 .n-card i.w80{width:80%;background:rgba(34,225,255,.35)}
+/* mini 3D房间 */
+.t3d-room{background:#241C14;overflow:hidden}
+.rmm-wall{position:absolute;left:0;right:0;top:10%;height:56%;background:linear-gradient(#CBB694,#B89F7C)}
+.rmm-floor{position:absolute;left:0;right:0;bottom:0;height:34%;background:repeating-linear-gradient(90deg,#7A5B3A 0 22px,#6E5134 22px 24px)}
+.rmm-frame{position:absolute;left:16%;top:20%;width:56px;height:42px;background:#FFFBF0;border:4px solid #4A3826;padding:5px}
+.rmm-frame.f2{left:auto;right:10%}
+.rmm-frame i{display:block;height:4px;background:rgba(62,52,40,.55);border-radius:2px;margin-bottom:4px}
+.rmm-frame i.w60{width:60%}
+.rmm-lamp{position:absolute;left:44%;top:10%;width:26px;height:5px;background:#3A2E1E}
+.rmm-lamp:after{content:"";position:absolute;left:50%;top:5px;width:64px;height:64px;transform:translateX(-50%);background:linear-gradient(rgba(255,232,170,.3),transparent 75%);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%)}
+.rmm-c{left:40%;bottom:8%;transform:scale(.8)}
+/* mini 竞技场 */
+.t3d-arena{background:#FFFCF0;padding:12px}
+.arm-num{font:900 44px/1 "Helvetica Neue",Arial,sans-serif;color:#FFFCF0;-webkit-text-stroke:2px #0037FF;letter-spacing:-2px}
+.arm-bar{position:absolute;top:0;left:0;height:3px;width:55%;background:#0037FF}
+.arm-l1{position:absolute;left:12px;bottom:30px;width:62%;height:8px;background:#101314}
+.arm-l2{position:absolute;left:12px;bottom:16px;width:40%;height:8px;background:#0037FF}
+.arm-flag{position:absolute;right:10px;top:12px;width:30px;height:20px;background:linear-gradient(#0037FF 0 4px,#FFFCF0 4px 8px,#0037FF 8px 12px,#FFFCF0 12px 16px,#0037FF 16px)}
+/* mini 粒子发布册 */
+.t3d-editions{background:radial-gradient(60px 40px at 70% 20%,rgba(214,160,220,.4),transparent),radial-gradient(70px 50px at 25% 80%,rgba(70,140,90,.45),transparent),#1C2430;overflow:hidden}
+.edm-name{position:absolute;left:0;right:0;top:38%;text-align:center;font:800 20px "Helvetica Neue",sans-serif;color:#fff;letter-spacing:2px;filter:blur(.4px);opacity:.95}
+.edm-dots{position:absolute;inset:0}
+.edm-dots i{position:absolute;width:3px;height:3px;background:#9FE870;animation:tw 1.4s ease-in-out infinite alternate}
+.edm-dots i:nth-child(1){left:12%;top:20%}
+.edm-dots i:nth-child(2){left:30%;top:64%;background:#7DD3FC}
+.edm-dots i:nth-child(3){left:52%;top:14%;background:#F0A8D0}
+.edm-dots i:nth-child(4){left:70%;top:70%}
+.edm-dots i:nth-child(5){left:86%;top:34%;background:#FBBF77}
+.edm-dots i:nth-child(6){left:44%;top:78%;background:#C4B5FD}
+.edm-dots i:nth-child(7){left:8%;top:76%;background:#7DD3FC}
+.edm-dots i:nth-child(8){left:78%;top:12%;background:#F0A8D0}
 /* mini 旋转展廊 */
 .t3d-orbit{background:radial-gradient(70px 55px at 70% -8%,#3b2f78,transparent 70%),#0b1026;overflow:hidden}
 .ob-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 1.6s ease-in-out infinite alternate}
