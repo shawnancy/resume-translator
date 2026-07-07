@@ -11,22 +11,10 @@ export const TEMPLATES_3D = [
     cfg: { tilt: false, tiltMax: 0, fx: "none", typing: false, layout: "game" },
   },
   {
-    id: "dossier",
-    name: "职业档案",
-    desc: "奶油纸 · 电光蓝 · 档案编排",
-    cfg: { tilt: false, tiltMax: 0, fx: "none", typing: false, layout: "dossier" },
-  },
-  {
-    id: "glass",
-    name: "星空玻璃",
-    desc: "暗夜星空 · 玻璃拟态悬浮卡",
-    cfg: { tilt: true, tiltMax: 7, fx: "stars", typing: false },
-  },
-  {
-    id: "neon",
-    name: "赛博霓虹",
-    desc: "透视网格 · 霓虹辉光",
-    cfg: { tilt: true, tiltMax: 5, fx: "rise", typing: false },
+    id: "orbit",
+    name: "旋转展廊",
+    desc: "3D 旋转木马 · 滚动转环",
+    cfg: { tilt: false, tiltMax: 0, fx: "stars", typing: false, layout: "orbit" },
   },
   {
     id: "terminal",
@@ -152,7 +140,7 @@ function parseOne(doc, isZh) {
     if (i === nameIdx) continue;
     const t = lines[i].text;
     if (CONTACT_RE.test(t)) {
-      t.split(/\s*[|｜•·丨/]\s*|\s{2,}/).forEach((p) => {
+      t.split(/\s*[|｜•·丨]\s*|\s{2,}/).forEach((p) => {
         const s = p.trim();
         if (s && s.length <= 60 && contacts.length < 8 && !contacts.includes(s)) contacts.push(s);
       });
@@ -437,6 +425,48 @@ background-image:linear-gradient(rgba(22,20,15,.04) 1px,transparent 1px),linear-
 .foot{border-top:1px solid #D8CFB8;padding-top:16px;color:#8D8570;text-align:left;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;letter-spacing:.14em}
 @media(max-width:640px){.d-photo{order:-1}.hero{margin-bottom:40px}.card{margin-bottom:36px}}
 `,
+  orbit: `
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",sans-serif;color:#eef0ff;overflow-x:hidden;
+background:radial-gradient(1100px 750px at 72% -12%,#3b2f78 0%,rgba(59,47,120,0) 55%),
+radial-gradient(950px 700px at 6% 108%,#14406b 0%,rgba(20,64,107,0) 60%),#0b1026}
+.scene{display:none}
+#langBtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(10px)}
+.o-hero{position:fixed;top:6vh;left:0;right:0;text-align:center;z-index:6;pointer-events:none;padding:0 16px}
+.o-hero .name{font-size:clamp(28px,4.5vw,44px);font-weight:760;line-height:1.15;
+background:linear-gradient(115deg,#fff 30%,#aab4ff 75%,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.o-hero .tagline{margin-top:6px;font-size:13.5px;color:#b8c0ea}
+.o-hero .chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:10px}
+.o-hero .chip{font-size:11.5px;padding:4px 11px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#dfe3ff}
+.o-stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;perspective:1500px;z-index:4}
+.o-car{position:relative;width:0;height:0;transform-style:preserve-3d}
+.op{position:absolute;left:0;top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.op-in{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:20px;
+backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:22px 24px;max-height:56vh;overflow-y:auto;
+box-shadow:0 18px 50px rgba(2,6,32,.5),inset 0 1px 0 rgba(255,255,255,.12);
+opacity:.34;filter:saturate(.7);transition:opacity .4s,filter .4s,box-shadow .4s}
+.op.on .op-in{opacity:1;filter:none;box-shadow:0 18px 60px rgba(2,6,32,.6),0 0 40px rgba(139,147,255,.22),inset 0 1px 0 rgba(255,255,255,.16)}
+.op-t{font-size:15.5px;color:#c7cdff;display:flex;align-items:center;gap:9px;margin:0 0 12px;letter-spacing:.04em}
+.op-i{font-size:11px;color:#8b93ff;font-family:ui-monospace,Menlo,monospace}
+.i-head{color:#fff;font-size:14px}
+.i-lines li{color:#d5daf5;opacity:.92;font-size:13px}
+.i-lines li:before{color:#8b93ff}
+.tl{position:relative;padding-left:18px}
+.tl:before{content:"";position:absolute;left:2px;top:6px;bottom:6px;width:1px;background:rgba(139,147,255,.35)}
+.tl-it{position:relative;margin-bottom:16px}
+.tl-it:before{content:"";position:absolute;left:-18px;top:7px;width:6px;height:6px;border-radius:50%;background:#8b93ff}
+.tl-head{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;margin-bottom:5px}
+.tl-date{font-size:10.5px;color:#a5b4fc;border:1px solid rgba(139,147,255,.4);border-radius:4px;padding:1px 7px;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+.tl-title{font-weight:700;font-size:14px;color:#fff}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
+.tag{border:1px solid rgba(139,147,255,.45);color:#c7cdff;border-radius:6px;padding:3px 10px;font-size:11.5px;background:rgba(139,147,255,.08)}
+.o-count{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:6;
+font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.3em;color:#8b93ff}
+.o-hint{position:fixed;bottom:44px;left:50%;transform:translateX(-50%);z-index:6;font-size:11px;letter-spacing:.14em;color:rgba(223,227,255,.5);animation:ohint 1.4s ease-in-out infinite alternate}
+@keyframes ohint{to{opacity:.4;transform:translateX(-50%) translateY(4px)}}
+.foot{display:none}
+@media(max-width:640px){.o-hero{top:4vh}.op-in{max-height:52vh;padding:17px 16px}}
+@media(prefers-reduced-motion:reduce){.o-hint{animation:none}}
+`,
   glass: `
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB",sans-serif;color:#eef0ff;
 background:radial-gradient(1100px 750px at 72% -12%,#3b2f78 0%,rgba(59,47,120,0) 55%),
@@ -547,6 +577,7 @@ box-shadow:0 0 22px rgba(92,255,126,.35);animation:ctapulse 1.4s ease-in-out inf
 
 const TPL_DECOR = {
   game: "",
+  orbit: "",
   dossier: '<div id="prog"></div>',
   glass: '<div class="orb a"></div><div class="orb b"></div>',
   neon: '<div class="sun"></div><div class="grid-floor"></div>',
@@ -642,7 +673,7 @@ const RUNTIME_JS = `
       html+='<div class="gn '+cls+'" style="left:'+x+'px;width:'+w+'px">'+inner+'</div>';
       gNodes.push(x);
       if(hud)gHuds.push({x:x,label:hud});
-      x+=w+Math.max(210,Math.floor(vw*0.16));
+      x+=w+Math.max(480,Math.floor(vw*0.58));
     }
     var chips=(d.contacts||[]).map(function(c){return '<span class="gchip">'+esc(c)+'</span>'}).join('');
     node('g-start',Math.min(540,Math.floor(vw*0.82)),
@@ -736,11 +767,52 @@ const RUNTIME_JS = `
     for(var j=0;j<gHuds.length;j++){if(gHuds[j].x<=sx+vw*0.38)label=gHuds[j].label}
     document.getElementById('ghud').textContent=label||gHuds[0].label;
   }
+  // ===== 3D 旋转展廊: 简历节=环形玻璃面板, 滚动旋转, 正面点亮 =====
+  var oN=0,oBound=false;
+  function renderOrbit(d){
+    var g=document.getElementById('orbit');
+    if(!g){g=document.createElement('div');g.id='orbit';document.body.appendChild(g)}
+    var secs=d.sections;oN=secs.length;
+    var vw=window.innerWidth;
+    var pw=Math.min(440,Math.floor(vw*0.8));
+    var R=Math.round((pw/2)/Math.tan(Math.PI/Math.max(oN,3)))+110;
+    var panels='';
+    secs.forEach(function(s,i){
+      var body='';
+      if(s.kind==='skill')body=skillBody(s);
+      else if(s.kind==='work'||s.kind==='project'||s.kind==='edu')body=timelineBody(s);
+      else body=plainBody(s);
+      panels+='<div class="op" style="width:'+pw+'px;transform:translate(-50%,-50%) rotateY('+(i*360/oN)+'deg) translateZ('+R+'px)">'+
+        '<div class="op-in"><h2 class="op-t"><span class="op-i">'+pad(i+1)+'</span>'+esc(s.title)+'</h2>'+body+'</div></div>';
+    });
+    var chips=(d.contacts||[]).map(function(c){return '<span class="chip">'+esc(c)+'</span>'}).join('');
+    g.innerHTML='<div class="o-hero"><h1 class="name" id="bigName">'+esc(d.name)+'</h1>'+
+      (d.tagline?'<p class="tagline">'+esc(d.tagline)+'</p>':'')+
+      (chips?'<div class="chips">'+chips+'</div>':'')+'</div>'+
+      '<div class="o-stage"><div class="o-car" id="ocar">'+panels+'</div></div>'+
+      '<div class="o-hint">'+(lang==='zh'?'滚动 · 旋转展廊':'SCROLL TO ROTATE')+'</div>'+
+      '<div class="o-count" id="ocount"></div>'+
+      '<div style="height:'+(oN*900+window.innerHeight)+'px"></div>';
+    if(!oBound){oBound=true;window.addEventListener('scroll',oTick,{passive:true})}
+    window.scrollTo(0,0);
+    oTick();
+  }
+  function oTick(){
+    if(CFG.layout!=='orbit'||!oN)return;
+    var sx=window.scrollY||document.documentElement.scrollTop||0;
+    var car=document.getElementById('ocar');if(!car)return;
+    car.style.transform='rotateY('+(-(sx/900)*(360/oN))+'deg)';
+    var idx=Math.min(oN-1,Math.max(0,Math.round(sx/900)));
+    var ops=document.querySelectorAll('.op');
+    for(var i=0;i<ops.length;i++)ops[i].classList.toggle('on',i===idx%oN);
+    var c=document.getElementById('ocount');if(c)c.textContent=pad(idx+1)+' / '+pad(oN);
+  }
   function render(){
     var d=DATA[lang];
     document.documentElement.lang=lang==='zh'?'zh-CN':'en';
     document.title=d.name+(lang==='zh'?' · 简历':' · Resume');
     if(CFG.layout==='game')renderGame(d);
+    else if(CFG.layout==='orbit')renderOrbit(d);
     else if(CFG.layout==='dossier')renderDossier(d);else renderClassic(d);
     document.getElementById('foot').textContent=lang==='zh'?('由「简历翻译器」生成'+(single?'':' · 中英文自动切换')):('Made with Resume Translator'+(single?'':' · bilingual auto-switch'));
     document.getElementById('langBtn').textContent=lang==='zh'?'EN':'中文';

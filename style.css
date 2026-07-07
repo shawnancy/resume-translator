@@ -300,6 +300,20 @@ body.wide-step main{max-width:1240px}
 .n-card i{display:block;height:4px;border-radius:2px;background:rgba(34,225,255,.8);margin-bottom:5px}
 .n-card i.w60{width:60%;background:rgba(255,62,165,.75)}
 .n-card i.w80{width:80%;background:rgba(34,225,255,.35)}
+/* mini 旋转展廊 */
+.t3d-orbit{background:radial-gradient(70px 55px at 70% -8%,#3b2f78,transparent 70%),#0b1026;overflow:hidden}
+.ob-star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;animation:tw 1.6s ease-in-out infinite alternate}
+.ob-star.s1{top:16%;left:20%}
+.ob-star.s2{top:30%;right:16%;animation-delay:.6s}
+.ob-ring{position:absolute;left:50%;top:54%;perspective:300px;transform-style:preserve-3d}
+.ob-p{position:absolute;left:-34px;top:-26px;width:68px;height:52px;border-radius:8px;
+background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.28);padding:8px 7px;
+animation:ob-spin 4.5s linear infinite;backface-visibility:hidden}
+.ob-p i{display:block;height:4px;border-radius:2px;background:rgba(170,180,255,.7);margin-bottom:5px}
+.ob-p i.w60{width:60%;background:rgba(255,255,255,.4)}
+.ob-p.p2{animation-delay:-1.5s}
+.ob-p.p3{animation-delay:-3s}
+@keyframes ob-spin{from{transform:rotateY(0deg) translateZ(52px)}to{transform:rotateY(360deg) translateZ(52px)}}
 /* mini 复古终端 */
 .t3d-terminal{background:#040804;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 1px,transparent 1px 3px)}
 .t-lines{position:absolute;inset:12px;font:11px/1.9 ui-monospace,Menlo,monospace;color:#4ade80;display:flex;flex-direction:column;text-shadow:0 0 6px rgba(74,222,128,.6)}
